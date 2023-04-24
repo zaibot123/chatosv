@@ -1,11 +1,13 @@
 import React from "react";
 import './App.css'
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 
 
 function JoinRoom(){
 let [id, setID] = useState("")
+const navigate = useNavigate();
 
 const makeAndSendJoinRequest = async (roomID) => {
 const url='http://localhost:5001/'+roomID+'/join'
@@ -35,6 +37,7 @@ if (response1.status===200){
 }
 
 const makeAndSendCreateRoomRequest= async () => {
+    navigate("/chat");
     console.log("NSS")
     const response1 = await fetch('http://localhost:5001/createRoom',
     {

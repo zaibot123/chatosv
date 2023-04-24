@@ -17,6 +17,7 @@ function App() {
     <div className="root">
 <Routes>
 <Route path="/"     element={<JoinRoom />} />
+<Route path="/chat/:roomid" element={<ListOfChatMessages />} /> 
 <Route path="/chat"     element={<ListOfChatMessages />} />
 </Routes>
  </div>
