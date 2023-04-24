@@ -3,7 +3,6 @@ import './App.css'
 
 function ChatMessage({message}){
 
-    console.log(message.isMessageFromUser)
     return(
     <div className>
       
