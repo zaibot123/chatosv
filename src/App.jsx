@@ -9,6 +9,7 @@ import {
 import ChatMessage from './ChatMessages'
 import ListOfChatMessages from './ListOfChatMessages'
 import keyManager from './keyManager'
+import NotFound from './NotFound.jsx'
 
 function App() {
 
@@ -19,6 +20,7 @@ function App() {
 <Route path="/"     element={<JoinRoom />} />
 <Route path="/chat/:roomid" element={<ListOfChatMessages />} /> 
 <Route path="/chat"     element={<ListOfChatMessages />} />
+<Route path ="/404" element={<NotFound/>}></Route>
 </Routes>
  </div>
   )

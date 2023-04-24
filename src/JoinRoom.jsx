@@ -5,10 +5,12 @@ import { useNavigate } from "react-router-dom";
 
 
 
-function JoinRoom(){
+
+
+function JoinRoom(roomID,e){
+
 let [id, setID] = useState("")
 const navigate = useNavigate();
-
 const makeAndSendJoinRequest = async (roomID) => {
 const url='http://localhost:5001/'+roomID+'/join'
 console.log(url)
@@ -17,9 +19,8 @@ const jsonBody={
     room:roomID,
     user:"Tobias"
 }
-
+try {
 let response1 = await fetch(url,
-
 {
     Method: "POST",
     Headers: {
@@ -29,11 +30,16 @@ let response1 = await fetch(url,
     Body: jsonBody,
     Cache: 'default'
   });
-  console.log(response1)
-if (response1.status===200){
-    //reroute to website/chat/room
-    //aquire key from host
+
+  if (response1.status===200){
+    navigate("/chat/"+roomID);
+  }
+
 }
+catch (error) {
+  navigate("/404/");
+}
+
 }
 
 const makeAndSendCreateRoomRequest= async () => {
@@ -76,13 +82,13 @@ return (
                              value={id}
                              onChange={e => setID(e.target.value)}
       />
-<button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"onClick={()=>makeAndSendJoinRequest(id)}>
+<button type="button"  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"onClick={(e)=>makeAndSendJoinRequest(id,e) }>
   Join room!
 
 </button>
 <br></br>
 
-<button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"onClick={()=>makeAndSendCreateRoomRequest()}>
+<button type="button" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"onClick={()=>makeAndSendCreateRoomRequest()}>
  Dont have a room? Create one here!
 </button>
 </label>
