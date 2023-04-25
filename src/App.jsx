@@ -2,7 +2,7 @@ import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
-import JoinRoom from './joinRoom'
+import JoinRoom from './JoinRoom'
 import { 
   Routes, Route, Link, NavLink, useParams, Outlet
 } from "react-router-dom";
@@ -13,7 +13,7 @@ import NotFound from './NotFound.jsx'
 import {UserContext} from './UserContext'
 
 function App() {
-  const[name,setName]=useState("")
+  const[name,setName]=useState("Anonymous")
 
   return(
 

@@ -48,8 +48,10 @@ catch (error) {
 }
 
 const makeAndSendCreateRoomRequest= async () => {
-  setName(nameState);
-    navigate("/chat");
+    var room_nr=Math.floor(Math.random() * 101000);
+    //on client for now, server should respond with room ID
+    setName(nameState);
+    try {
     const response1 = await fetch('http://localhost:5001/createRoom',
     {
         Method: 'POST',
@@ -60,10 +62,17 @@ const makeAndSendCreateRoomRequest= async () => {
         body: JSON.stringify({"user": name}),
         Cache: 'default'
       });
+    
       console.log(response1)
+      
     if (response1.status===200){
         //reroute to created room
         //aquire key from host
+    }
+  }
+    catch (error) {
+      navigate("/chat/"+room_nr);
+
     }
 }
     
@@ -90,8 +99,8 @@ return (
         type="name"
         placeholder="enter your name"
         className="me-2"
-        aria-label="id" 
-        value={name}
+        aria-label="name" 
+        value={nameState}
         onChange={e => setNameState(e.target.value)}
       />
       </label>
