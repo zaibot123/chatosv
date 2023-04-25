@@ -10,6 +10,7 @@ class keyManager {
       }  
       publishPublicKeyToRoom()
       {
+        //tell server about my public key
       }
 
       //encrypting symmetric key for dsitribution. Host does this
@@ -18,6 +19,7 @@ class keyManager {
         //Only Hosts should be told to do this.
          AESKey=  CryptoJS.generateAESKey
       }
+  
       encryptAESKey(AESkey,publicKeyRecipient){
         return CryptoJS.publicEncrypt({
             key: publicKeyRecipient,
@@ -26,6 +28,7 @@ class keyManager {
           },
            Buffer.from(AESkey)
           )
+          //send to to new guy
         }
 
 
