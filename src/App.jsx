@@ -16,8 +16,6 @@ import {UserContext} from './UserContext'
 
 function App() {
   const[name,setName]=useState("Anonymous")
-
-
   return(
 
     <div className="root">

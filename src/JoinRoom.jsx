@@ -51,11 +51,17 @@ const makeAndSendCreateRoomRequest= async () => {
   }
     catch (error) {
       navigate("/chat/"+room_nr);
+      setName(nameState);
 
     }
 
 };
 
+function join(name,id){
+  setName(name)
+  navigate("/chat/"+id)
+
+}
 
 
 return (
@@ -99,11 +105,11 @@ return (
         className="me-2"
         aria-label="id" 
         value={id}
-        onChange={e => setID()}
+        onChange={e => setID(e.target.value)}
       />
       </label>
 
-<button type="button"  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"onClick={()=>  navigate("/chat/"+id)}>
+<button type="button"  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"onClick={()=> join(nameState,id)}>
   Join room!
 </button>
 <br></br>

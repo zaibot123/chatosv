@@ -13,6 +13,7 @@ function FileUploadPage(){
        formData.append('File', String(selectedFile));
        formData.append('name', selectedFile.name);
        setSelectedFile();
+       console.log(formData)
        let response1 = await fetch(url,
         {
             Method: "POST",

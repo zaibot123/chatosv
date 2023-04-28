@@ -21,11 +21,7 @@ let roomid=params.roomid
 const navigate = useNavigate();
 //const socket= io('http://localhost:4000/'+roomid);
 let {name,setName}=useContext(UserContext);
-let [list,setList] =useState([
-    { message: 'Own message', author: "Tobias", isMessageFromUser:true, messageID:1,timestamp:"13:54"},
-    { message: 'Received Message 1', author: "Mads",  isMessageFromUser:false,messageID:2,timestamp:"14:08"},
-    { message: 'Received Message 2', author: "Kata",  isMessageFromUser:false,messageID:3,timestamp:"15:55"}
-])
+let [list,setList] =useState([])
 let [key,setKey]=useState(5)
 
 
@@ -36,6 +32,7 @@ console.log(connection.state)
 connection.start().then(function () {
   setConnection(connection)
   console.log(connection.state)
+
 }).catch(function (err) {
     return console.error(err.toString());
 });
@@ -53,6 +50,7 @@ const incrementCount = () => {
 function leaveRoom(){
    // socket.emit("Leaving,"+name)
   //  socket.close();
+  connection.stop();
     navigate("/");
   }
 
@@ -73,19 +71,39 @@ function handleSubmit(){
   setList(newArray);
 }
 
+
 if (connection){
+  connection.on("ReceiveMessage",
+  function (user, message) {
+    
+  let today = new Date();
+  var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+  let newmessage= { message: message, author:user ,  isMessageFromUser:false,messageID:key,timestamp:  time}
+  var newArray=[]
+  list.forEach(element => {
+newArray.push(element)
+  });
+  incrementCount();
+  newArray.push(newmessage)
+  setList(newArray);
+})
+
+  /*
 connection.on("ReceiveMessage",
 function (user, message) {
-console.log(newList)
+console.log(message)
 var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-let newmessage= { message: user, author:message ,  isMessageFromUser:false,messageID:key,timestamp:  time}
+let newmessage= { message: message, author:author ,  isMessageFromUser:false,messageID:key,timestamp: time}
 var newArray=list
+incrementCount();
 newArray.push(newmessage)
+console.log("Trying to set List")
 setList(newArray)
-console.log(newList)
-});
-}
+console.log("List set")
 
+});
+*/
+}
 
 
 

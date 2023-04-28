@@ -3,7 +3,6 @@ import './App.css'
 
 
 function ChatMessage({message}){
-
     return(
     <div className>
     <div className={`${message.isMessageFromUser? "text-right": "text-left"}`}>
@@ -13,7 +12,6 @@ function ChatMessage({message}){
     {message.author}, {message.timestamp}
 </div>
 </div>
-
     )
 }
 export default ChatMessage;
