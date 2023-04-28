@@ -1,51 +1,30 @@
 import React from "react";
 import './App.css'
-import { useState,useContext } from "react";
+import { useState,useContext,useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {UserContext} from './UserContext'
+import { HubConnectionBuilder } from '@microsoft/signalr';
+import {
+  createSignalRContext, // SignalR
+  createWebSocketContext, // WebSocket
+  createSocketIoContext, // Socket.io
+} from "react-signalr";
 
 
 function JoinRoom(roomID,e){
 
+
+
 let [nameState,setNameState]=useState("")
 let [id, setID] = useState("")
 const navigate = useNavigate();
+const [messages, setMessage] = useState([]);
 let {name, setName} = useContext(UserContext)
+const [ connection, setConnection ] = useState(null);
+const [ chat, setChat ] = useState([]);
+const latestChat = useRef(null);
+latestChat.current = chat;
 
-
-const makeAndSendJoinRequest = async (roomID) => {
-setName(nameState);
-const url='http://localhost:5001/'+roomID+'/join'
-console.log(url)
-alert(roomID)
-const jsonBody={
-    room:roomID,
-    user:name
-}
-try {
-let response1 = await fetch(url,
-{
-    Method: "POST",
-    Headers: {
-      Accept: 'application.json',
-      'Content-Type': 'application/json'
-    },
-    Body: jsonBody,
-    Cache: 'default'
-  });
-
-  if (response1.status===200){
-    navigate("/chat/"+roomID);
-    //make socketToRoom
-  }
-
-}
-catch (error) {
-  alert(name+"just joined " + roomID)
-  navigate("/404/");
-}
-
-}
 
 const makeAndSendCreateRoomRequest= async () => {
     var room_nr=Math.floor(Math.random() * 101000);
@@ -74,8 +53,9 @@ const makeAndSendCreateRoomRequest= async () => {
       navigate("/chat/"+room_nr);
 
     }
-}
-    
+
+};
+
 
 
 return (
@@ -123,7 +103,7 @@ return (
       />
       </label>
 
-<button type="button"  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"onClick={(e)=>makeAndSendJoinRequest(id,e) }>
+<button type="button"  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"onClick={()=>  navigate("/chat/"+id)}>
   Join room!
 </button>
 <br></br>
@@ -139,4 +119,5 @@ return (
 
   )
 }
+
 export default JoinRoom;    
