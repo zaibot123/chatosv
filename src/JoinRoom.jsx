@@ -45,11 +45,11 @@ function join(name,id){
   {
     setConnection(connectionToCreate);
     connectionToCreate.invoke("JoinRoom", name, id)
-    navigate
-  }).catch(function (err) {
-    console.log(err)
-    })
     navigate("/chat/"+id)
+  }).catch(function (err) {
+    navigate("/404/"+id)
+    })
+
 
 }
 
