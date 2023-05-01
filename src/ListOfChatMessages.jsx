@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import TextBox from "./TextBox";
 import { useState, useEffect, useContext } from "react";
 import {UserContext} from "./UserContext";
+import {ConnectionContext} from "./ConnectionContext";
 import { io } from 'socket.io-client';
 import { useNavigate } from "react-router-dom";
 import FileUploadPage from "./FileUploader";
@@ -14,30 +15,17 @@ import { HubConnectionBuilder } from '@microsoft/signalr';
 function ListOfChatMessages({listOfChatMessages, roomName}){
 
 let [text, setText] = useState("")
-let [connection,setConnection]=useState()
 
 let params  = useParams();
 let roomid=params.roomid
 const navigate = useNavigate();
 //const socket= io('http://localhost:4000/'+roomid);
 let {name,setName}=useContext(UserContext);
+let {connection,setConnection}=useContext(ConnectionContext);
+let[loading,setLoading]=useState(false);
 let [list,setList] =useState([])
 let [key,setKey]=useState(5)
 
-
-useEffect(() => {
-//socket.on("receive_message",(data) =>{setText(data)}); 
-var connection = new HubConnectionBuilder().withUrl("https://77.33.131.228:80/chatHub").build();
-console.log(connection.state)
-connection.start().then(function () {
-  setConnection(connection)
-  console.log(connection.state)
-
-}).catch(function (err) {
-    return console.error(err.toString());
-});
-//makeAndSendJoinRequest(id,e)
-  },[]);
 
 
 const incrementCount = () => {
@@ -48,10 +36,11 @@ const incrementCount = () => {
   };
   
 function leaveRoom(){
-   // socket.emit("Leaving,"+name)
-  //  socket.close();
-  connection.stop();
+  if(connection){
+    connection.stop();
     navigate("/");
+  }
+  navigate("/");
   }
 
 
@@ -65,7 +54,7 @@ function handleSubmit(){
   incrementCount();
  // socket.emit(newmessage)
   newArray.push(newmessage)
-  connection.invoke("SendMessage", name,newmessage.message).catch(function (err) {
+  connection.invoke("SendMessage", newmessage.message).catch(function (err) {
     console.log(err)
   })
   setList(newArray);
@@ -75,18 +64,19 @@ function handleSubmit(){
 if (connection){
   connection.on("ReceiveMessage",
   function (user, message) {
-    
   let today = new Date();
   var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
   let newmessage= { message: message, author:user ,  isMessageFromUser:false,messageID:key,timestamp:  time}
   var newArray=[]
-  list.forEach(element => {
+list.forEach(element => {
 newArray.push(element)
   });
   incrementCount();
   newArray.push(newmessage)
   setList(newArray);
 })
+}
+
 
   /*
 connection.on("ReceiveMessage",
@@ -103,7 +93,6 @@ console.log("List set")
 
 });
 */
-}
 
 
 
