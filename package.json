@@ -12,11 +12,14 @@
   "dependencies": {
     "@microsoft/signalr": "^8.0.0-preview.3.23177.8",
     "crypto": "^1.0.1",
+    "crypto-js": "^4.1.1",
     "jsencrypt": "^3.3.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-native-rsa-native": "^2.0.5",
     "react-router-dom": "^6.10.0",
     "react-signalr": "^0.2.14",
+    "requirejs": "^2.3.6",
     "socket.io": "^4.6.1",
     "socket.io-client": "^4.6.1"
   },

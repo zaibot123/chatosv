@@ -1,5 +1,6 @@
 import React from "react";
 import './App.css'
+
 import { useState,useContext,useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {UserContext} from './UserContext'
@@ -9,7 +10,12 @@ import {
   createSignalRContext, // SignalR
   createWebSocketContext, // WebSocket
   createSocketIoContext, // Socket.io
+  JsonHubProtocol,
+  HubConnectionState,
+  LogLevel
 } from "react-signalr";
+import keyManager from "./keyManager";
+
 
 
 function JoinRoom(){
@@ -26,9 +32,18 @@ let {connection, setConnection} = useContext(ConnectionContext)
 const [ chat, setChat ] = useState([]);
 const latestChat = useRef(null);
 latestChat.current = chat;
+var keymanager= new keyManager()
 
 
 const makeAndSendCreateRoomRequest= async () => {
+
+
+
+  console.log(keymanager.GenerateAESKey())
+  console.log(keymanager.generateRSAKeyPair())
+
+
+
   var connectionToCreate = new HubConnectionBuilder().withUrl("http://localhost:100/chatHub").build();
   connectionToCreate.start().then(function ()
   {
@@ -40,16 +55,19 @@ const makeAndSendCreateRoomRequest= async () => {
 };
 
 function join(name,id){
-  var connectionToCreate = new HubConnectionBuilder().withUrl("http://localhost:100/chatHub").build();
-  connectionToCreate.start().then(function ()
+  var connectionToJoin = new HubConnectionBuilder().withUrl("http://localhost:100/chatHub")
+  connectionToJoin.start().then(function ()
   {
-    setConnection(connectionToCreate);
-    connectionToCreate.invoke("JoinRoom", name, id)
-    navigate("/chat/"+id)
-  }).catch(function (err) {
-    navigate("/404/"+id)
-    })
 
+    try {
+      setConnection(connectionToJoin);
+      connectionToJoin.invoke("JoinRoom", name, id)
+      navigate("/chat/"+id)
+    } catch (error) {
+      navigate("/404/"+id)    
+    }
+  }
+  )
 
 }
 
