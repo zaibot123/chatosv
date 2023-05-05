@@ -49,15 +49,18 @@ var keymanager= new keyManager()
     })
 };
 
-function join(name,id){
-  var connectionToJoin = new HubConnectionBuilder().withUrl("http://localhost:100/chatHub")
+async function join(name,id){
+  await keymanager.generateRSAKeyPair();
+
+  var connectionToJoin = new HubConnectionBuilder().withUrl("http://localhost:100/chatHub").build();
   connectionToJoin.start().then(function ()
   {
 
     try {
       setConnection(connectionToJoin);
-      connectionToJoin.invoke("JoinRoom", name, id)
-      navigate("/chat/"+id)
+      // connectionToJoin.invoke("JoinRoom", name, id, JSON.stringify(publicKey))
+      connectionToJoin.invoke("JoinRoom", name, id, "key")
+      navigate("/chat/"+id, {state:{keys:keymanager}})
     } catch (error) {
       navigate("/404/"+id)    
     }
@@ -66,16 +69,49 @@ function join(name,id){
 
 }
 
+
+
 if (connection){
-  console.log("2")
     connection.on("ReceiveGroupName",
     function (roomID) {
     console.log("roomID")
     setRoomID(roomID)
     setName(name)
     console.log(roomID)
-    navigate("/chat/"+roomID)
-  })
+    navigate("/chat/"+roomID, {state:{keys:keymanager}})
+  }
+  )
+
+   connection.on("SendKey",
+  
+  // async (publicKey) => {
+  async () => {
+    let publicKey2 = "key";
+  let encryptedAES=  keymanager.encryptAESKeyWithPublicKey(publicKey2)
+   let promise = new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve(encryptedAES);
+        }, 100);
+    });
+    return promise; 
+  
+  }
+    
+    // async function (publicKey){
+    //  let encryptedAES=keymanager.encryptAESKeyWithPublicKey(publicKey)
+   )
+   
+   connection.on("ReceiveKey",
+   function (encryptedAESKey){
+    // set the encrypted symmetric key
+  keymanager.AESKey(encryptedAESKey)
+   }
+   )
+
+
+
+
+
   } 
 
 

@@ -26,7 +26,7 @@ AESKey={}
     )
     .then(function(encryptedKey){
         //returns an ArrayBuffer containing the encrypted data
-        console.log(new Uint8Array(encryptedKey));
+        return(new Uint8Array(encryptedKey));
         
     })
     .catch(function(err){

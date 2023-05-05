@@ -1,17 +1,19 @@
 import React, {useState} from 'react';
 
-function FileUploadPage(){
+function FileUploadPage({keymanager}){
 	const [selectedFile, setSelectedFile] = useState();
 
    
     async function handleSubmission(event){
-        console.log(selectedFile)
-        console.log("FILES")
         event.preventDefault()
        // const url = 'http://localhost:5000/uploadFile';
       let formData = new FormData();
-       formData.append('File', String(selectedFile));
+      let split_file_name_by_dot=selectedFile.name.split(".");
+      let extension=split_file_name_by_dot.slice(-1)
+      let encryptedFile=await window.crypto.subtle.encrypt(AesCbcParams, keymanager.AESKey, selectedFile)
+       formData.append('File', String(encryptedFile));
        formData.append('name', selectedFile.name);
+       formData.append('extension',extension)
        setSelectedFile();
        console.log(formData)
        let response1 = await fetch(url,

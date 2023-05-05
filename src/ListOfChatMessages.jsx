@@ -6,7 +6,7 @@ import { useState, useEffect, useContext } from "react";
 import {UserContext} from "./UserContext";
 import {ConnectionContext} from "./ConnectionContext";
 import { io } from 'socket.io-client';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation} from "react-router-dom";
 import FileUploadPage from "./FileUploader";
 import { HubConnectionBuilder } from '@microsoft/signalr';
 
@@ -15,7 +15,8 @@ import { HubConnectionBuilder } from '@microsoft/signalr';
 function ListOfChatMessages({listOfChatMessages, roomName}){
 
 let [text, setText] = useState("")
-
+const {state} = useLocation();
+const {keys} = state;
 let params  = useParams();
 let roomid=params.roomid
 const navigate = useNavigate();
@@ -44,7 +45,7 @@ function leaveRoom(){
   }
 
 
-function handleSubmit(){
+async function handleSubmit(){
 
   //makeAndSendJoinRequest(id,e);
   let today = new Date();
@@ -54,7 +55,8 @@ function handleSubmit(){
   incrementCount();
  // socket.emit(newmessage)
   newArray.push(newmessage)
-  connection.invoke("SendMessage", newmessage.message).catch(function (err) {
+  let encryptedMessage=await window.crypto.subtle.encrypt(AesCbcParams, keymanager.AESKey, newmessage.message)
+  connection.invoke("SendMessage", encryptedMessage).catch(function (err) {
     console.log(err)
   })
   setList(newArray);
@@ -119,7 +121,7 @@ Welcome to room {roomid}</p>
         <button type="button" onClick={handleSubmit}>Print Text </button>
       </form>
     </div>
-    <FileUploadPage></FileUploadPage>
+    <FileUploadPage keyManager={keys}></FileUploadPage>
 </>
 )
 
