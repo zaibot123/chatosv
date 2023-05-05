@@ -29,20 +29,15 @@ const navigate = useNavigate();
 const [roomID, setRoomID] = useState();
 let {name, setName} = useContext(UserContext)
 let {connection, setConnection} = useContext(ConnectionContext)
-const [ chat, setChat ] = useState([]);
-const latestChat = useRef(null);
-latestChat.current = chat;
 var keymanager= new keyManager()
 
 
-const makeAndSendCreateRoomRequest= async () => {
+ async function makeAndSendCreateRoomRequest() {
 
 
 
-  console.log(keymanager.GenerateAESKey())
-  console.log(keymanager.generateRSAKeyPair())
-
-
+  await keymanager.GenerateAESKey()
+  await keymanager.generateRSAKeyPair()
 
   var connectionToCreate = new HubConnectionBuilder().withUrl("http://localhost:100/chatHub").build();
   connectionToCreate.start().then(function ()
