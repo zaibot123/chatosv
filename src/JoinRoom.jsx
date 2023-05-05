@@ -50,19 +50,21 @@ var keymanager= new keyManager()
 };
 
 async function join(name,id){
-  await keymanager.generateRSAKeyPair();
-
+  // await keymanager.generateRSAKeyPair();
+  
   var connectionToJoin = new HubConnectionBuilder().withUrl("http://localhost:100/chatHub").build();
   connectionToJoin.start().then(function ()
   {
-
+    
     try {
       setConnection(connectionToJoin);
-      // connectionToJoin.invoke("JoinRoom", name, id, JSON.stringify(publicKey))
+      // console.log("public key: " + JSON.stringify(keymanager.publicKey))
+      // connectionToJoin.invoke("JoinRoom", name, id, JSON.stringify(keymanager.publicKey))
       connectionToJoin.invoke("JoinRoom", name, id, "key")
       navigate("/chat/"+id, {state:{keys:keymanager}})
     } catch (error) {
-      navigate("/404/"+id)    
+      console.log(error)
+      navigate("/404/")    
     }
   }
   )
@@ -83,13 +85,29 @@ if (connection){
   )
 
    connection.on("SendKey",
+   
+   async (publicKey) => {
+    // let RsaObject= new window.crypto.subtle.RsaHashedImportParams("RSASSA-PKCS1-v1_5", "SHA-256")
+    // let publicKeyArrayBuffer=keymanager.str2ab(publicKey)
+    // let publicKeyObject=importKey("spki", publicKeyArrayBuffer, RsaObject, true, encrypt)
+    // let encryptedAES = await window.crypto.subtle.encrypt(
+    //   {
+    //     name: "RSA-OAEP",
+    //   },
+      
+    //   // publicKeyObject,
+    //   publicKeyObject,
+    //   keymanager.AESKey
+    // );
+
   
-  // async (publicKey) => {
-  async () => {
-    let publicKey2 = "key";
-  let encryptedAES=  keymanager.encryptAESKeyWithPublicKey(publicKey2)
+    // let encryptedAES=  keymanager.encryptAESKeyWithPublicKey(publicKey)
+    console.log(JSON.stringify(encryptedAES))
+  
+  
    let promise = new Promise((resolve, reject) => {
         setTimeout(() => {
+            // resolve(JSON.stringify(encryptedAES));
             resolve(encryptedAES);
         }, 100);
     });

@@ -121,7 +121,7 @@ Welcome to room {roomid}</p>
         <button type="button" onClick={handleSubmit}>Print Text </button>
       </form>
     </div>
-    <FileUploadPage keyManager={keys}></FileUploadPage>
+    <FileUploadPage keyManager={keys}room={roomName}></FileUploadPage>
 </>
 )
 
