@@ -29,15 +29,24 @@ const navigate = useNavigate();
 const [roomID, setRoomID] = useState();
 let {name, setName} = useContext(UserContext)
 let {connection, setConnection} = useContext(ConnectionContext)
-var keymanager= new keyManager()
 
 
- async function makeAndSendCreateRoomRequest() {
+async function makeAndSendCreateRoomRequest() {
+  
+  
+ 
+  var keymanager= new keyManager();
+  await keymanager.GenerateAESKey();
+  console.log("KEY IS HERE: " + keymanager.publicKey);
+  // other code that uses the publicKey property
 
+// await keymanager.exportCryptoKey()
+// var keymanager= new keyManager()
+// await keymanager.GenerateAESKey()
 
+// await console.log("KEY IS HERE: " + keymanager.publicKey)
 
-  await keymanager.GenerateAESKey()
-  await keymanager.generateRSAKeyPair()
+// await keymanager.generateRSAKeyPair()
 
   var connectionToCreate = new HubConnectionBuilder().withUrl("http://localhost:100/chatHub").build();
   connectionToCreate.start().then(function ()
@@ -49,9 +58,9 @@ var keymanager= new keyManager()
     })
 };
 
+
 async function join(name,id){
   // await keymanager.generateRSAKeyPair();
-  
   var connectionToJoin = new HubConnectionBuilder().withUrl("http://localhost:100/chatHub").build();
   connectionToJoin.start().then(function ()
   {
@@ -59,8 +68,9 @@ async function join(name,id){
     try {
       setConnection(connectionToJoin);
       // console.log("public key: " + JSON.stringify(keymanager.publicKey))
-      // connectionToJoin.invoke("JoinRoom", name, id, JSON.stringify(keymanager.publicKey))
-      connectionToJoin.invoke("JoinRoom", name, id, "key")
+      console.log("keymanager.publicKey: " + keymanager.publicKey)
+      connectionToJoin.invoke("JoinRoom", name, id, keymanager.publicKey)
+      // connectionToJoin.invoke("JoinRoom", name, id, "key")
       navigate("/chat/"+id, {state:{keys:keymanager}})
     } catch (error) {
       console.log(error)
@@ -102,13 +112,14 @@ if (connection){
 
   
     // let encryptedAES=  keymanager.encryptAESKeyWithPublicKey(publicKey)
-    console.log(JSON.stringify(encryptedAES))
+    // console.log(JSON.stringify(encryptedAES))
   
   
    let promise = new Promise((resolve, reject) => {
         setTimeout(() => {
             // resolve(JSON.stringify(encryptedAES));
-            resolve(encryptedAES);
+            // resolve(encryptedAES);
+            resolve(publicKey)
         }, 100);
     });
     return promise; 
