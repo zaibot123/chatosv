@@ -6,11 +6,14 @@ class keyManager {
   privateKey = {}
   publicKey = ""
   AESKey = {}
-  constructor(){
+
+
+
+  constructor() {
     this.privateKey = {}
-    this.publicKey = ""
+    this.publicKey = "default"
     this.AESKey = {}
-  
+
   }
 
 
@@ -42,7 +45,7 @@ class keyManager {
   }
 
 
-   ab2str(buf) {
+  ab2str(buf) {
     return String.fromCharCode.apply(null, new Uint8Array(buf));
   }
 
@@ -53,69 +56,106 @@ class keyManager {
     const exportedAsBase64 = window.btoa(exportedAsString);
     const pemExported = `-----BEGIN PUBLIC KEY-----\n${exportedAsBase64}\n-----END PUBLIC KEY-----`;
     this.publicKey = pemExported;
-    console.log("Keeey: " + this.publicKey)
-    // const exportKeyOutput = document.querySelector(".exported-key");
-    // exportKeyOutput.textContent = pemExported;
-    
-   
-  
-}
+    // console.log("exportCryptoKey: " + this.publicKey)
 
 
-
-
-
-
-
-
-
-
-
-
-async GenerateAESKey() {
-    window.crypto.subtle
-    .generateKey(
-    {
-      name: "RSA-OAEP",
-      // Consider using a 4096-bit key for systems that require long-term security
-      modulusLength: 2048,
-      publicExponent: new Uint8Array([1, 0, 1]),
-      hash: "SHA-256",
-    },
-    true,
-    ["encrypt", "decrypt"]
-  )
-  .then((keyPair) => {
-    // const exportButton = document.querySelector(".spki");
-    // exportButton.addEventListener("click", () => {
-      this.exportCryptoKey(keyPair.publicKey);
-      console.log("this.publicKey: " + this.publicKey)
-    // });
-  });
-}
-
-
-
-
-/* 
-
-
-async GenerateAESKey() {
-  let AESKeyObject = await window.crypto.subtle.generateKey(
-    {
-        name: "AES-GCM",
-        length: 256, //can be  128, 192, or 256
-      },
-      true, //whether the key is extractable (i.e. can be used in exportKey)
-      ["encrypt", "decrypt"] //can "encrypt", "decrypt", "wrapKey", or "unwrapKey"
-      )
-    let AESKeyExportedToJson = await crypto.subtle.exportKey("spki", AESKeyObject);
-    this.AESKey = AESKeyExportedToJson
-    return AESKeyExportedToJson
 
   }
-  
+
+
+
+
+
+
+
+  async GenerateAESKey() {
+    await window.crypto.subtle
+      .generateKey(
+        {
+          name: "RSA-OAEP",
+          // Consider using a 4096-bit key for systems that require long-term security
+          modulusLength: 2048,
+          publicExponent: new Uint8Array([1, 0, 1]),
+          hash: "SHA-256",
+        },
+        true,
+        ["encrypt", "decrypt"]
+      )
+      .then(async (keyPair) => {
+        // const exportButton = document.querySelector(".spki");
+        // exportButton.addEventListener("click", () => {
+        await this.exportCryptoKey(keyPair.publicKey);
+        // });
+      }).then(() => {
+        return "test2";
+      }).catch((error) => {
+        console.log("error: " + error)
+      })
+      ;
+      
+    return this.publicKey
+  }
+
+  /*
+  IMPORTING KEY?
   */
+  str2ab(str) {
+    const buf = new ArrayBuffer(str.length);
+    const bufView = new Uint8Array(buf);
+    for (let i = 0, strLen = str.length; i < strLen; i++) {
+      bufView[i] = str.charCodeAt(i);
+    }
+    return buf;
+  }
+
+  importRsaKey(pem) {
+    // fetch the part of the PEM string between header and footer
+    const pemHeader = "-----BEGIN PUBLIC KEY-----";
+    const pemFooter = "-----END PUBLIC KEY-----";
+    const pemContents = pem.substring(
+      pemHeader.length,
+      pem.length - pemFooter.length
+    );
+    // base64 decode the string to get the binary data
+    const binaryDerString = window.atob(pemContents);
+    // convert from a binary string to an ArrayBuffer
+    const binaryDer = str2ab(binaryDerString);
+
+    return window.crypto.subtle.importKey(
+      "spki",
+      binaryDer,
+      {
+        name: "RSA-OAEP",
+        hash: "SHA-256",
+      },
+      true,
+      ["encrypt"]
+    );
+  }
+
+
+
+
+
+  /* 
+  
+  
+  async GenerateAESKey() {
+    let AESKeyObject = await window.crypto.subtle.generateKey(
+      {
+          name: "AES-GCM",
+          length: 256, //can be  128, 192, or 256
+        },
+        true, //whether the key is extractable (i.e. can be used in exportKey)
+        ["encrypt", "decrypt"] //can "encrypt", "decrypt", "wrapKey", or "unwrapKey"
+        )
+      let AESKeyExportedToJson = await crypto.subtle.exportKey("spki", AESKeyObject);
+      this.AESKey = AESKeyExportedToJson
+      return AESKeyExportedToJson
+  
+    }
+    
+    */
   async generateRSAKeyPair() {
     let keyPair = await window.crypto.subtle.generateKey(
       {

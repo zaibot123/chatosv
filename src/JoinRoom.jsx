@@ -29,23 +29,19 @@ const navigate = useNavigate();
 const [roomID, setRoomID] = useState();
 let {name, setName} = useContext(UserContext)
 let {connection, setConnection} = useContext(ConnectionContext)
+var keymanager= new keyManager();
 
 
 async function makeAndSendCreateRoomRequest() {
+  <s></s>
   
   
- 
-  var keymanager= new keyManager();
+  console.log("empty/filled keymanager: " + keymanager.publicKey)
   await keymanager.GenerateAESKey();
-  console.log("KEY IS HERE: " + keymanager.publicKey);
-  // other code that uses the publicKey property
-
-// await keymanager.exportCryptoKey()
-// var keymanager= new keyManager()
-// await keymanager.GenerateAESKey()
-
-// await console.log("KEY IS HERE: " + keymanager.publicKey)
-
+  
+  // await keymanager.GenerateAESKey()
+  
+  
 // await keymanager.generateRSAKeyPair()
 
   var connectionToCreate = new HubConnectionBuilder().withUrl("http://localhost:100/chatHub").build();
@@ -55,11 +51,19 @@ async function makeAndSendCreateRoomRequest() {
     connectionToCreate.invoke("CreateRoom", name)
   }).catch(function (err) {
     console.log(err)
-    })
+  })
 };
 
 
+
+
+
+
+
+
+
 async function join(name,id){
+  await keymanager.GenerateAESKey();
   // await keymanager.generateRSAKeyPair();
   var connectionToJoin = new HubConnectionBuilder().withUrl("http://localhost:100/chatHub").build();
   connectionToJoin.start().then(function ()
