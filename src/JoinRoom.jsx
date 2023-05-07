@@ -15,43 +15,44 @@ import {
   LogLevel
 } from "react-signalr";
 import keyManager from "./keyManager";
+import { connect } from "socket.io-client";
 
-
-
-function JoinRoom(){
-
-
-
-let [nameState,setNameState]=useState("")
-let [connectionState,setConnectionState]=useState("")
-let [id, setID] = useState("")
-const navigate = useNavigate();
-const [roomID, setRoomID] = useState();
-let {name, setName} = useContext(UserContext)
-let {connection, setConnection} = useContext(ConnectionContext)
 var keymanager= new keyManager();
 
 
-async function makeAndSendCreateRoomRequest() {
-  <s></s>
+function JoinRoom(){
   
   
-  console.log("empty/filled keymanager: " + keymanager.publicKey)
-  await keymanager.GenerateAESKey();
-  
-  // await keymanager.GenerateAESKey()
-  
-  
-// await keymanager.generateRSAKeyPair()
 
+  let [nameState,setNameState]=useState("")
+  let [connectionState,setConnectionState]=useState("")
+  let [id, setID] = useState("")
+  const navigate = useNavigate();
+  const [roomID, setRoomID] = useState();
+  let {name, setName} = useContext(UserContext)
+  let {connection, setConnection} = useContext(ConnectionContext)
+  
+  console.log("connection before: " + connection)
+  async function makeAndSendCreateRoomRequest() {
+    <s></s>
+    console.log("connection creating: " + connection)
+    await keymanager.GenerateAESKey();
+  
   var connectionToCreate = new HubConnectionBuilder().withUrl("http://localhost:100/chatHub").build();
-  connectionToCreate.start().then(function ()
+  connectionToCreate.start()
+  .then(function() {
+    setConnection(connectionToCreate);
+    connectionToCreate.invoke("PreJoinRoom");
+  }
+  )
+  .then(function ()
   {
     setConnection(connectionToCreate);
     connectionToCreate.invoke("CreateRoom", name)
   }).catch(function (err) {
     console.log(err)
   })
+
 };
 
 
@@ -63,18 +64,19 @@ async function makeAndSendCreateRoomRequest() {
 
 
 async function join(name,id){
-  await keymanager.GenerateAESKey();
+  await keymanager.generatePublicKey();
+  console.log("connection joined: " + connection)
   // await keymanager.generateRSAKeyPair();
   var connectionToJoin = new HubConnectionBuilder().withUrl("http://localhost:100/chatHub").build();
-  connectionToJoin.start().then(function ()
+  connectionToJoin.start()
+  .then(function ()
+  
   {
+    setConnection(connectionToJoin);
     
     try {
-      setConnection(connectionToJoin);
-      // console.log("public key: " + JSON.stringify(keymanager.publicKey))
-      console.log("keymanager.publicKey: " + keymanager.publicKey)
-      connectionToJoin.invoke("JoinRoom", name, id, keymanager.publicKey)
-      // connectionToJoin.invoke("JoinRoom", name, id, "key")
+      // setConnection(connectionToJoin);
+      connectionToJoin.invoke("JoinRoom", name, id, keymanager.publicKey);
       navigate("/chat/"+id, {state:{keys:keymanager}})
     } catch (error) {
       console.log(error)
@@ -88,6 +90,7 @@ async function join(name,id){
 
 
 if (connection){
+  console.log("connection on")
     connection.on("ReceiveGroupName",
     function (roomID) {
     console.log("roomID")
@@ -101,46 +104,33 @@ if (connection){
    connection.on("SendKey",
    
    async (publicKey) => {
-    // let RsaObject= new window.crypto.subtle.RsaHashedImportParams("RSASSA-PKCS1-v1_5", "SHA-256")
-    // let publicKeyArrayBuffer=keymanager.str2ab(publicKey)
-    // let publicKeyObject=importKey("spki", publicKeyArrayBuffer, RsaObject, true, encrypt)
-    // let encryptedAES = await window.crypto.subtle.encrypt(
-    //   {
-    //     name: "RSA-OAEP",
-    //   },
-      
-    //   // publicKeyObject,
-    //   publicKeyObject,
-    //   keymanager.AESKey
-    // );
-
-  
-    // let encryptedAES=  keymanager.encryptAESKeyWithPublicKey(publicKey)
-    // console.log(JSON.stringify(encryptedAES))
+    let encryptedAES = await keymanager.importRsaKey(publicKey);
+    console.log("encryptedAES: " +encryptedAES)
+    let encryptedAESkey=  await 
+    keymanager.encryptAESKeyWithPublicKey(encryptedAES)
+    console.log("encryptedAESkey: " +encryptedAESkey)
+    // let key = keymanager.exportCryptoKey(encryptedAESkey); 
   
   
    let promise = new Promise((resolve, reject) => {
         setTimeout(() => {
-            // resolve(JSON.stringify(encryptedAES));
-            // resolve(encryptedAES);
-            resolve(publicKey)
+            resolve(encryptedAESkey);
         }, 100);
     });
     return promise; 
   
   }
-    
-    // async function (publicKey){
-    //  let encryptedAES=keymanager.encryptAESKeyWithPublicKey(publicKey)
    )
    
    connection.on("ReceiveKey",
    function (encryptedAESKey){
     // set the encrypted symmetric key
-  keymanager.AESKey(encryptedAESKey)
+  // keymanager.AESKey(encryptedAESKey);
+  console.log("AES here: " + encryptedAESKey);
    }
    )
 
+   setConnection(false);
 
 
 
