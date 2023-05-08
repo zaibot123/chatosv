@@ -17,7 +17,7 @@ import {
 import keyManager from "./keyManager";
 import { connect } from "socket.io-client";
 
-var keymanager= new keyManager();
+var keymanager= new keyManager("1","2","3","4", "5");
 
 
 function JoinRoom(){
@@ -32,49 +32,53 @@ function JoinRoom(){
   let {name, setName} = useContext(UserContext)
   let {connection, setConnection} = useContext(ConnectionContext)
   
-  console.log("connection before: " + connection)
+  
+  // To send a notification for SignalR backend to create a room
+  //  and add the participant 
   async function makeAndSendCreateRoomRequest() {
     <s></s>
-    console.log("connection creating: " + connection)
-    await keymanager.GenerateAESKey();
-  
-  var connectionToCreate = new HubConnectionBuilder().withUrl("http://localhost:100/chatHub").build();
-  connectionToCreate.start()
-  .then(function() {
-    setConnection(connectionToCreate);
-    connectionToCreate.invoke("PreJoinRoom");
-  }
-  )
-  .then(function ()
-  {
-    setConnection(connectionToCreate);
-    connectionToCreate.invoke("CreateRoom", name)
-  }).catch(function (err) {
-    console.log(err)
-  })
-
-};
-
-
-
-
-
-
-
-
-
-async function join(name,id){
-  await keymanager.generatePublicKey();
-  console.log("connection joined: " + connection)
-  // await keymanager.generateRSAKeyPair();
-  var connectionToJoin = new HubConnectionBuilder().withUrl("http://localhost:100/chatHub").build();
-  connectionToJoin.start()
-  .then(function ()
-  
-  {
-    setConnection(connectionToJoin);
+   await keymanager.GenerateAESKey();
     
-    try {
+    
+    
+    var connectionToCreate = new HubConnectionBuilder().withUrl("http://localhost:100/chatHub").build();
+    await connectionToCreate.start()
+    .then(function ()
+    {
+      setConnection(connectionToCreate);
+      connectionToCreate.invoke("CreateRoom", name)
+    }).catch(function (err) {
+      console.log(err)
+    })
+    
+  };
+
+  
+  
+  
+  
+  
+  // To send a notification for SignalR backend to join participant to a room
+  async function join(name,id){
+    await keymanager.generatePublicKey();
+    var connectionToJoin = new HubConnectionBuilder().withUrl("http://localhost:100/chatHub").build();
+    await connectionToJoin.start()
+    .then(async function() {
+      setConnection(connectionToJoin);
+      await connectionToJoin.invoke("JoinRoom", name, id, keymanager.publicKeyAsString);
+      // navigate("/chat/"+id, {state:{keys:keymanager}})
+    }
+    )
+    
+
+    /*
+    
+    .then(function ()
+    
+    {
+      setConnection(connectionToJoin);
+      
+      try {
       // setConnection(connectionToJoin);
       connectionToJoin.invoke("JoinRoom", name, id, keymanager.publicKey);
       navigate("/chat/"+id, {state:{keys:keymanager}})
@@ -84,53 +88,55 @@ async function join(name,id){
     }
   }
   )
+  */
 
 }
 
 
-
+// All the methods called by the SignalR backend when 
+// communicating via sockets. 
 if (connection){
-  console.log("connection on")
+
+    // Receive the generated room id
     connection.on("ReceiveGroupName",
     function (roomID) {
-    console.log("roomID")
     setRoomID(roomID)
     setName(name)
-    console.log(roomID)
     navigate("/chat/"+roomID, {state:{keys:keymanager}})
   }
   )
 
+  // 
    connection.on("SendKey",
-   
    async (publicKey) => {
     let encryptedAES = await keymanager.importRsaKey(publicKey);
-    console.log("encryptedAES: " +encryptedAES)
-    let encryptedAESkey=  await 
-    keymanager.encryptAESKeyWithPublicKey(encryptedAES)
-    console.log("encryptedAESkey: " +encryptedAESkey)
-    // let key = keymanager.exportCryptoKey(encryptedAESkey); 
-  
-  
-   let promise = new Promise((resolve, reject) => {
-        setTimeout(() => {
-            resolve(encryptedAESkey);
-        }, 100);
-    });
-    return promise; 
-  
+    let encryptedAESkey=  await keymanager.encryptAESKeyWithPublicKey(encryptedAES);
+    return encryptedAESkey;
+
+  //  let promise = new Promise((resolve, reject) => {
+  //       setTimeout(() => {
+  //           resolve(encryptedAESkey);
+  //       }, 100);
+  //   });
+  //   return promise; 
   }
    )
    
    connection.on("ReceiveKey",
-   function (encryptedAESKey){
+   async function (encryptedAESKey){
     // set the encrypted symmetric key
-  // keymanager.AESKey(encryptedAESKey);
-  console.log("AES here: " + encryptedAESKey);
+    
+    await keymanager.decrpytAESKey(encryptedAESKey)
+
+    console.log("AES HER--- " + keymanager.AESKey)
+    navigate("/chat/"+id, {state:{keys:keymanager}})
+
+    // console.log("private key: " + keymanager.privateKey)
+    // keymanager.AESKey = encryptedAESKey;
+    // keymanager.AESKey(encryptedAESKey);
    }
    )
 
-   setConnection(false);
 
 
 
@@ -189,7 +195,12 @@ return (
 </button>
 <br></br>
 
-<button type="button" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"onClick={()=>makeAndSendCreateRoomRequest(name)}>
+<button type="button"  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"onClick={()=> preJoin()}>
+ PRE Join room!
+</button>
+<br></br>
+
+<button type="button" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"onClick={()=>makeAndSendCreateRoomRequest()}>
  Dont have a room? Create one here!
 </button>
 </form>

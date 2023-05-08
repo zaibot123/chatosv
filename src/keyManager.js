@@ -2,13 +2,21 @@ import CryptoJS from "crypto-js";
 import { JSEncrypt } from "jsencrypt";
 
 class keyManager {
-
   privateKey = {}
   publicKey = ""
+  publicKeyAsString = ""
   AESKey = "AESkey??"
+  AESKeyExported = ""
 
+  constructor(publicKey, privateKey, AESKey, publicKeyAsString, AESKeyExported){
+    this.privateKey = privateKey;
+    this.AESKey = AESKey;
+    this.publicKey = publicKey;
+    this.publicKeyAsString = publicKeyAsString;
+    this.AESKeyExported = AESKeyExported
 
-
+  }
+    
 
   publishPublicKeyToRoom() {
     //STRINGIFYJSON
@@ -16,48 +24,75 @@ class keyManager {
   }
 
 
-
+/**
+ * Encrypts the AES key with RSA using the joining participant's public key
+ * @param {CryptoKey} publicKeyOfRecipient The public key received from a joining participant such that the AES key can be encrypted. 
+ * @returns {string} The AES key encrypted by the joining participant's public key
+ */
   async encryptAESKeyWithPublicKey(publicKeyOfRecipient) {
       // this.AESKey = await this.GenerateAESKey();
       let encryptedKey = await window.crypto.subtle.encrypt(
         {
           name: "RSA-OAEP",
-          //label: Uint8Array([...]) //optional
         },
         publicKeyOfRecipient, //from generateKey or importKey above
-        this.AESKey //ArrayBuffer of data you want to encrypt
+        this.AESKeyExported //ArrayBuffer of data you want to encrypt
         )
-      //   .then(function () {
-      //     //returns an ArrayBuffer containing the encrypted data
-      //   // return (new Uint8Array(encryptedKey));
-      //   console.log("encryptedKey: " + encryptedKey)
-      //   return encryptedKey;
-        
-      // })
       .catch(function (err) {
         console.error(err);
       });
-      // return encryptedKey;
       return this.ab2str(encryptedKey);
   }
 
+  /**
+ * Encrypts the input text with the AES key using CBC
+ * @param {string} plainText The content that needs to be encrypted, provided as plaintext
+ * @returns {string} The encrypted input usingthe AES Key
+ */
+  async encryptDataWithAESKey(plainText) {
+    // this.AESKey = await this.GenerateAESKey();
+   let encryptedDataPlainIV={iv: "", body:""}
+    let  iv = window.crypto.getRandomValues(new Uint8Array(16));
+    let encrypteText = await window.crypto.subtle.encrypt(
+      {
+        name: "AES-CBC",
+        iv: iv,
+      },
+      this.AESKeyExported, 
+      plainText 
+      )
+    .catch(function (err) {
+      console.error(err);
+    });
+    encryptedDataPlainIV.iv=iv
+    encryptedDataPlainIV.body=encrypteText
+    // return encryptedKey;
+    return encryptedDataPlainIV
+}
 
+/**
+ * Converts an ArrayBuffer into a string
+ * @param {string} buf ArrayBuffer to convert
+ * @returns {string} Converted string
+ */
   ab2str(buf) {
-    return String.fromCharCode.apply(null, new Uint8Array(buf));
+    let str= String.fromCharCode.apply(null, new Uint8Array(buf));
+    return str
   }
 
+
+
+  /**
+   * Exports a CryptoKey of the SPKI form
+   * @param {CryptoKey} key The CryptoKey to be convert to string  
+   * @returns 
+   */
   async exportCryptoKey(key) {
     const exported = await window.crypto.subtle.exportKey("spki", key);
     const exportedAsString = this.ab2str(exported);
     const exportedAsBase64 = window.btoa(exportedAsString);
     const pemExported = `-----BEGIN PUBLIC KEY-----\n${exportedAsBase64}\n-----END PUBLIC KEY-----`;
     return pemExported;
-    
-    // this.publicKey = pemExported;
-    // console.log("exportCryptoKey: " + this.publicKey)
-
-
-
   }
 
 
@@ -65,7 +100,10 @@ class keyManager {
 
 
 
-
+/**
+ * Generates a public key and adds it to the KeyManagers object's public key
+ * @returns public key as CryptoKey (as Promise) 
+ */
   async generatePublicKey() {
     
     await window.crypto.subtle
@@ -81,21 +119,25 @@ class keyManager {
         ["encrypt", "decrypt"]
       )
       .then(async (keyPair) => {
-        // const exportButton = document.querySelector(".spki");
-        // exportButton.addEventListener("click", () => {
-        // await this.exportCryptoKey(keyPair.publicKey);
-        this.publicKey = await this.exportCryptoKey(keyPair.publicKey)
-        // this.publicKey = await this.exportCryptoKey(keyPair.privateKey)
-        // });
+        this.publicKey = keyPair.publicKey;
+        this.privateKey = keyPair.privateKey;
+        this.publicKeyAsString = await this.exportCryptoKey(keyPair.publicKey)
       })
       ;
       
+      //delete
     return this.publicKey
   }
 
   /*
   IMPORTING KEY?
   */
+
+/**
+ Converts a string into an arraybuffer 
+ * @param {*} str String to convert
+ * @returns Converted ArrayBuffer
+ */
   str2ab(str) {
     const buf = new ArrayBuffer(str.length);
     const bufView = new Uint8Array(buf);
@@ -105,6 +147,24 @@ class keyManager {
     return buf;
   }
 
+  en2ab(str) {
+    const buf = new ArrayBuffer(str.length);
+    const bufView = new Uint8Array(buf);
+    for (let i = 0, strLen = str.length; i < strLen; i++) {
+      bufView[i] = str.charCodeAt(i);
+    }
+    return buf;
+  }
+
+
+
+
+  // Using SRKI key format to 
+  /**
+   * Takes a string in SRKI format and creates a CryptoKey which can be used for encryption
+   * @param {*} pem SRKI formatted string 
+   * @returns CryptoKey for encryption
+   */
   async importRsaKey(pem) {
 
     // fetch the part of the PEM string between header and footer
@@ -119,7 +179,7 @@ class keyManager {
     // convert from a binary string to an ArrayBuffer
     const binaryDer = this.str2ab(binaryDerString);
     // return window.crypto.subtle.importKey(
-    let something =  await window.crypto.subtle.importKey(
+    return await window.crypto.subtle.importKey(
       "spki",
       binaryDer,
       {
@@ -129,64 +189,93 @@ class keyManager {
       true,
       ["encrypt"]
       );
-
-      const exportedAsString = this.ab2str(something);
-      const exportedAsBase64 = window.btoa(exportedAsString);
-      const pemExported = `-----BEGIN PUBLIC KEY-----\n${exportedAsBase64}\n-----END PUBLIC KEY-----`;
-      // this.publicKey = pemExported;
-
-      return something;
   }
 
-
-
-
-
+async importAesKey(decryptedAESKey){
+  // const binaryDerString = window.atob(aesKeyAsString);
+    // convert from a binary string to an ArrayBuffer
+    // const binaryDer = this.str2ab(binaryDerString);
+    // return window.crypto.subtle.importKey(
     
-    
-    
-    async GenerateAESKey() {
-
-    let AESKeyObject = await window.crypto.subtle.generateKey(
+    return await window.crypto.subtle.importKey(
+      "raw",
+      decryptedAESKey,
       {
-          name: "AES-GCM",
-          length: 256, //can be  128, 192, or 256
+        name: "AES-CBC",
+        hash: "SHA-256",
+      },
+      true,
+      ["decrypt", "encrypt"]
+      );
+}
+
+async decrpytAESKey(encryptedAESKeyString){
+  // const binaryDerString = window.atob(encryptedAESKeyString);
+  
+  let encryptedAESKeyAB = this.str2ab(encryptedAESKeyString);
+  let decryptedAESKey = await window.crypto.subtle.decrypt(
+    {
+      name: "RSA-OAEP",
+      // iv: window.crypto.getRandomValues(new Uint8Array(16)),
+    },
+    this.privateKey,
+    encryptedAESKeyAB
+    )
+    // let encryptedAESKey = importAesKey(decryptedAESKey)
+    this.AESKey = await this.importAesKey(decryptedAESKey);
+}
+
+
+
+    
+    
+    /**
+     * Generates an AES Cryptokey and assigns it to the KeyManager object
+     * @returns AES CryptoKey for encrypting and decrypting (as Promise)
+     */
+    async GenerateAESKey() {
+    this.AESKey = await window.crypto.subtle.generateKey(
+      {
+          name: "AES-CBC",
+          length: 256, 
+          // length: 128, 
         },
-        true, //whether the key is extractable (i.e. can be used in exportKey)
-        ["encrypt", "decrypt"] //can "encrypt", "decrypt", "wrapKey", or "unwrapKey"
+        true, 
+        ["encrypt", "decrypt"]  
         )
-        this.AESKey = await crypto.subtle.exportKey("raw", AESKeyObject);
-        // this.AESKey = AESKeyExportedToJson
-        return this.AESKey
+        
+        this.AESKeyExported = await crypto.subtle.exportKey("raw", this.AESKey);
+        return this.AESKeyExported
         
       }
-      
+/*decrypts received messaged with AES key
+*/
+      async decryptMessageWithAES(messageAndIVObject){
+        let IV = messageAndIVObject.iv;
+        // ( "raw", 
 
+        //   this.AESKey
+        
+        //   )
+        
+        let decryptedMessage = await window.crypto.subtle.decrypt(
+          {
+            name: "AES-CBC",
+            iv: this.str2ab(IV)
+          },
+          this.AESKey,
+          this.str2ab(messageAndIVObject.body)
+          )
 
-
-
-  async generateRSAKeyPair() {
-
-    let keyPair = await window.crypto.subtle.generateKey(
-      {
-        name: "RSA-OAEP",
-        modulusLength: 2048, //can be 1024, 2048, or 4096
-        publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
-        hash: { name: "SHA-256" }, //can be "SHA-1", "SHA-256", "SHA-384", or "SHA-512"
-      },
-      true, //whether the key is extractable (i.e. can be used in exportKey)
-      ["encrypt", "decrypt"] //can be any combination of "sign" and "verify"
-    )
-    let publicKey = await crypto.subtle.exportKey("spki", keyPair.publicKey);
-    //let publicKeyString =  JSON.stringify(publicKey, null, " ");
-    let privateKey = await crypto.subtle.exportKey("spki", keyPair.privateKey);
-    this.privateKey = privateKey;
-    this.publicKey = publicKey;
-    // return [publicKey, privateKey]
+        //   let dec = new TextDecoder();
+        // console.log("decryptedMessage ab: " + decryptedMessage)
+        // console.log("decryptedMessage:: " + this.ab2str(decryptedMessage))
+        return this.ab2str(decryptedMessage)
+          
+        }
   }
 
 
-}
 
 
 export default keyManager;

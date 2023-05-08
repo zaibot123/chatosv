@@ -5,8 +5,8 @@ function FileUploadPage({keymanager,room}){
 
    
     async function handleSubmission(event){
-        event.preventDefault()
-       // const url = 'http://localhost:5000/uploadFile';
+      event.preventDefault()
+       const url = 'http://77.33.131.228:3000/api/databaseapi/18'
       let formData = new FormData();
       let split_file_name_by_dot=selectedFile.name.split(".");
       let extension=split_file_name_by_dot.slice(-1)
@@ -21,8 +21,6 @@ function FileUploadPage({keymanager,room}){
        for (var pair of formData.entries()) {
         console.log(pair[0]+ ', ' + pair[1]); 
     }
-
-
        
        console.log(formData)
        let response1 = await fetch(url,
@@ -37,8 +35,26 @@ function FileUploadPage({keymanager,room}){
           if (response1.status===200){
             alert("file uploaded")
           }
-        
-    
+
+    }
+
+    async function downloadFile(){
+      const url ="http://77.33.131.228:3000/api/databaseapi/18"
+      let responseDownload = await fetch(url,
+        {
+            Method: "GET",
+            headers: {
+                'content-type': 'multipart/form-data',
+              },
+            Body: formData,
+            Cache: 'default'
+          });
+          if (responseDownload.status===200){
+      //      let encryptedFile= responseDownload.text
+            console.log(responseDownload.text)
+            alert("file uploaded")
+          }
+
 
     }
 
