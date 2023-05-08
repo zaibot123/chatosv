@@ -1,62 +1,59 @@
 import React, {useState} from 'react';
+// import { saveAs } from 'file-saver';
 
-function FileUploadPage({keymanager,room}){
+function FileUploadPage(){
 	const [selectedFile, setSelectedFile] = useState();
+  const [loading, setLoading] = useState("false");
 
-   
+  async function getAsByteArray(file) {
+    return new Uint8Array(await readFile(file))
+  }
+//https://dilshankelsen.com/convert-file-to-byte-array/
+  function readFile(file) {
+    return new Promise((resolve, reject) => {
+      let reader = new FileReader()
+      //ENCRYPT
+      reader.addEventListener("loadend", e => resolve(e.target.result))
+      reader.addEventListener("error", reject)
+      reader.readAsArrayBuffer(file)
+    })
+  }
     async function handleSubmission(event){
       event.preventDefault()
-       const url = 'http://77.33.131.228:3000/api/databaseapi/18'
-      let formData = new FormData();
-      let split_file_name_by_dot=selectedFile.name.split(".");
-      let extension=split_file_name_by_dot.slice(-1)
-      console.log(keymanager.AESKey)
-      let encryptedFile=await window.crypto.subtle.encrypt(AesCbcParams, keymanager.AESKey, selectedFile)
-      let encryptedFileName=await window.crypto.subtle.encrypt(AesCbcParams, keymanager.AESKey, selectedFile.name)
-       formData.append('File', String(encryptedFile));
-       formData.append('name', selectedFile.name);
-       formData.append('extension',extension)
-       formData.append('room',room)
-       setSelectedFile();
-       for (var pair of formData.entries()) {
-        console.log(pair[0]+ ', ' + pair[1]); 
-    }
-       
-       console.log(formData)
-       let response1 = await fetch(url,
-        {
-            Method: "POST",
-            headers: {
-                'content-type': 'multipart/form-data',
-              },
-            Body: formData,
-            Cache: 'default'
-          });
-          if (response1.status===200){
-            alert("file uploaded")
-          }
-
+        if(!selectedFile){
+          alert("choose a file")
+          return
+        }
+      const url ="http://77.33.131.228:3000/api/databaseapi/upload"
+      setLoading("true")
+      const byteFile = await getAsByteArray(selectedFile)
+       let bodyData={"file":byteFile, "name":selectedFile.name, }
+       let result =await fetch(url,{
+          method: "POST", 
+          mode: "cors",
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          body: JSON.stringify(bodyData)
+        })
+        setLoading("false")
+        console.log(result.text+ "Result")
     }
 
-    async function downloadFile(){
-      const url ="http://77.33.131.228:3000/api/databaseapi/18"
-      let responseDownload = await fetch(url,
-        {
-            Method: "GET",
-            headers: {
-                'content-type': 'multipart/form-data',
-              },
-            Body: formData,
-            Cache: 'default'
-          });
-          if (responseDownload.status===200){
-      //      let encryptedFile= responseDownload.text
-            console.log(responseDownload.text)
-            alert("file uploaded")
-          }
+    async function handleDownload(){
+      const url = "http://77.33.131.228:3000/api/databaseapi/10"
+      let result = await fetch(url, {
+        method: "GET" // default, so we can ignore
+    })
 
-
+    //DECRYPT
+    .then(result => result.json())
+    let utf8Encode = new TextEncoder();
+    let  fileByteArray=    utf8Encode.encode(result.data);
+    var blob = new Blob([fileByteArray], { type: result.extension });
+    saveAs(blob, 'test'+result.extension)
     }
+
 
     function handleChange(event) {
         console.log(event.target.files[0])
@@ -67,7 +64,10 @@ function FileUploadPage({keymanager,room}){
    <div>
 			<input type="file" name="file" onChange={handleChange} />
 			<div>
+      <b>{loading ==="true" ? 'File is being uploaded ' : ''}</b> 
 				<button onClick={handleSubmission}>Submit</button>
+        <br></br>
+        <button onClick={handleDownload}>download</button>
 			</div>
 		</div>
 	)

@@ -20,20 +20,17 @@ function ListOfChatMessages({listOfChatMessages, roomName}){
   let params  = useParams();
   let roomid=params.roomid
   const navigate = useNavigate();
-  //const socket= io('http://localhost:4000/'+roomid);
   let {name,setName}=useContext(UserContext);
   let {connection,setConnection}=useContext(ConnectionContext);
   let[loading,setLoading]=useState(false);
-  let [list,setList] =useState([])
+  let [listOfMessages,setListOfMessages] =useState([])
   let [key,setKey]=useState(0)
-  let keymanage = new keyManager(keys.publicKey, keys.privateKey, keys.AESKey, keys.publicKeyAsString, keys.AESKeyExported)
+
+  let keymanager = new keyManager(keys.publicKey, keys.privateKey, keys.AESKey, keys.publicKeyAsString, keys.AESKeyExported)
   
 
-
-const incrementCount = () => {
-    // console.log({name})
-    // console.log(key)
-    // Update state with incremented value
+// necessary to have a unique key for each message
+const incrementClientMsgId = () => {
     setKey(key + 1);
   };
   
@@ -47,82 +44,74 @@ function leaveRoom(){
 
 
 async function handleSubmit(){
-  console.log("keys: " + keys.AESKey)
-  //makeAndSendJoinRequest(id,e);
-  incrementCount();
-  console.log("keymana: " + keymanage.AESKey)
+  incrementClientMsgId();
+
+  // Setting of the structure of the message object
   let today = new Date();
   var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-  let newmessage= { message: text, author:name ,  isMessageFromUser:true,messageID:key + "a",timestamp:  time}
-  var newArray=list
-  // socket.emit(newmessage)
-  newArray.push(newmessage)
-  setList(newArray);
-  // let encryptedMessage = newmessage.message
+  let messageToSend= { 
+    textContent      :text, 
+    author           :name ,  
+    isMessageFromUser:true,
+    messageID        :key + "a",
+    timestamp        : time
+  }
 
-
-  let encrypted = await encryptDataWithAESKey(keys.AESKey,newmessage)
-  let decrypted = await keymanage.decryptMessageWithAES(encrypted)
+    // Setting values of the message object
+  var temporaryMsgArray = listOfMessages
+  temporaryMsgArray.push(messageToSend)
+  setListOfMessages(temporaryMsgArray);
   
+  // Encrypting the message for the receivers
+  let encryptedMessage = await encryptDataWithAESKey(keys.AESKey,messageToSend);
   
-  let encryptedMessage=await encryptDataWithAESKey(keys.AESKey,newmessage);
-  connection.invoke("SendMessage", encryptedMessage).catch(function (err) {
-    console.log(err)
-  })
-  setList(newArray);
+  // Send encrypted message to the server
+  connection.invoke("SendMessage", encryptedMessage)
+    .catch(function (err) {
+      console.log(err)
+    })
 }
 
 if (connection){
+  // Invoked from servers sides whenever someone else sends a message
   connection.on("ReceiveMessage",
-  async function (user, message, messageId) {
-  try {
+  async function (user, encryptedMsg, messageId) {
+    try {
     
-    let today = new Date();
     
-    var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-    // let newmessage= { message: message, author:user ,  isMessageFromUser:false,messageID:key,timestamp:  time}
     setKey(messageId)
-   let messageToSend = await keymanage.decryptMessageWithAES(message)
-   let jsonmessage = JSON.parse(messageToSend)
-    let newmessage= { message: jsonmessage.message, author:user ,  isMessageFromUser:false,messageID:messageId,timestamp:  time}
-  var newArray=[]
-list.forEach(element => {
-newArray.push(element)
-});
-  // incrementCount();
-  newArray.push(newmessage)
-  // newArray.push(newmessage["message"])
+    // Decrypting the message received from the server
+    let decryptedMsg = await keymanager.decryptMessageWithAES(encryptedMsg)
+    let jsonMessage = JSON.parse(decryptedMsg)
+    console.log(JSON.stringify(jsonMessage))
+    // Setting values of the message object
+    let today = new Date();
+    var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+    let receivedMessage = { 
+      textContent   : jsonMessage.textContent, 
+        author    :user ,  
+        isMessageFromUser:false,
+        messageID :messageId,
+        timestamp :  time}
 
-  setList(newArray);
-} catch (error) {
-  console.log(error)
-}  
-})
-
-
-}
-
-
-function encryptAndDecrypt(){
-
-
-
-}
-
-
-function getMessageEncoding(message) {
-  let enc = new TextEncoder();
-  return enc.encode(message);
-}
-
-
-async function encryptDataWithAESKey(key,pt) {
-
-  // this.AESKey = await this.GenerateAESKey();
-  // let plainText = getMessageEncoding(pt);
-  let plainText = pt;
+    // Adding the messages to current client's screen  
+    var temporaryMsgArray =[]
+    listOfMessages.forEach(element => {
+      temporaryMsgArray.push(element)
+    });
+    temporaryMsgArray.push(receivedMessage)
+    setListOfMessages(temporaryMsgArray);
   
-  let plainTextAB = keymanage.str2ab(JSON.stringify(plainText))
+  } catch (error) {
+    console.log(error)
+  }  
+})
+}
+
+
+async function encryptDataWithAESKey(key,plainText) {
+  
+  let plainTextAB = keymanager.str2ab(JSON.stringify(plainText))
 
   let  iv = window.crypto.getRandomValues(new Uint8Array(16));
   let encrypteText = await window.crypto.subtle.encrypt(
@@ -136,29 +125,10 @@ async function encryptDataWithAESKey(key,pt) {
     .catch(function (err) {
       console.error(err);
     });
-    // return encryptedKey;
-    let encryptedDataWithPlainIV={iv:keymanage.ab2str(iv),body:keymanage.ab2str(encrypteText)}
-  // encryptedDataWithPlainIV.iv=iv
-  // encryptedDataWithPlainIV.body=keymana.ab2str(encrypteText)
-  // console.log("---- " + keymana.ab2str(encrypteText))
+    let encryptedDataWithPlainIV={iv:keymanager.ab2str(iv),body:keymanager.ab2str(encrypteText)}
   return encryptedDataWithPlainIV
 }
 
-  /*
-connection.on("ReceiveMessage",
-function (user, message) {
-console.log(message)
-var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-let newmessage= { message: message, author:author ,  isMessageFromUser:false,messageID:key,timestamp: time}
-var newArray=list
-incrementCount();
-newArray.push(newmessage)
-console.log("Trying to set List")
-setList(newArray)
-console.log("List set")
-
-});
-*/
 
 
 
@@ -177,7 +147,7 @@ return(
 <p className="text-3xl text-center">Hey {name}
 <br></br>
 Welcome to room {roomid}</p>
-{list.map(x => <ChatMessage message={x} key={x.messageID}/>)}
+{listOfMessages.map(x => <ChatMessage message={x} key={x.messageID}/>)}
 
 <div>
       <form >
