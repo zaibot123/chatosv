@@ -8,15 +8,27 @@ class keyManager {
   AESKey = "AESkey??"
   AESKeyExported = ""
 
-  constructor(publicKey, privateKey, AESKey, publicKeyAsString, AESKeyExported){
-    this.privateKey = privateKey;
-    this.AESKey = AESKey;
-    this.publicKey = publicKey;
-    this.publicKeyAsString = publicKeyAsString;
-    this.AESKeyExported = AESKeyExported
+  // constructor(publicKey, privateKey, AESKey, publicKeyAsString, AESKeyExported){
+  //   this.privateKey = privateKey;
+  //   this.AESKey = AESKey;
+  //   this.publicKey = publicKey;
+  //   this.publicKeyAsString = publicKeyAsString;
+  //   this.AESKeyExported = AESKeyExported
+
+  // }
+   
+  constructor(keys){
+    this.privateKey = keys.privateKey;
+    this.AESKey = keys.AESKey;
+    this.publicKey = keys.publicKey;
+    this.publicKeyAsString = keys.publicKeyAsString;
+    this.AESKeyExported = keys.AESKeyExported
+    this.iv = ""
 
   }
-    
+
+
+
 
   publishPublicKeyToRoom() {
     //STRINGIFYJSON
@@ -248,15 +260,46 @@ async decrpytAESKey(encryptedAESKeyString){
         return this.AESKeyExported
         
       }
+
+
+/**
+ * Encrypts a text using the the AES key and CBC.
+ * @param {string} key The key to encrypt the message 
+ * @param {string} plainText The text to encrypt 
+ * @returns Encrypted text as string
+ */
+      async encryptDataWithAESKey(plainText) {
+  
+        let plainTextAB = this.str2ab(JSON.stringify(plainText))
+      
+        let  iv = window.crypto.getRandomValues(new Uint8Array(16));
+        let encrypteText = await window.crypto.subtle.encrypt(
+          {
+            name: "AES-CBC",
+            iv: iv,
+          },
+          this.AESKey, 
+          plainTextAB 
+          )
+          .catch(function (err) {
+            console.error(err);
+          });
+          let encryptedDataWithPlainIV={iv:this.ab2str(iv),body:this.ab2str(encrypteText)}
+        return encryptedDataWithPlainIV
+      }
+
+
+
 /*decrypts received messaged with AES key
 */
+/**
+ * Decrypts a message using the AESkey with a given initial vector
+ * @param {Object} messageAndIVObject Object containing the encrypted message (body:) and iv (:iv)
+ * @returns Dectrypted message as string
+ */
       async decryptMessageWithAES(messageAndIVObject){
         let IV = messageAndIVObject.iv;
-        // ( "raw", 
-
-        //   this.AESKey
-        
-        //   )
+  
         
         let decryptedMessage = await window.crypto.subtle.decrypt(
           {

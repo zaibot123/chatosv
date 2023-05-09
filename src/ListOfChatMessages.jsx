@@ -26,7 +26,8 @@ function ListOfChatMessages({listOfChatMessages, roomName}){
   let [listOfMessages,setListOfMessages] =useState([])
   let [key,setKey]=useState(0)
 
-  let keymanager = new keyManager(keys.publicKey, keys.privateKey, keys.AESKey, keys.publicKeyAsString, keys.AESKeyExported)
+  // let keymanager = new keyManager(keys.publicKey, keys.privateKey, keys.AESKey, keys.publicKeyAsString, keys.AESKeyExported)
+  let keymanager = new keyManager(keys)
   
 
 // necessary to have a unique key for each message
@@ -63,7 +64,7 @@ async function handleSubmit(){
   setListOfMessages(temporaryMsgArray);
   
   // Encrypting the message for the receivers
-  let encryptedMessage = await encryptDataWithAESKey(keys.AESKey,messageToSend);
+  let encryptedMessage = await keymanager.encryptDataWithAESKey(messageToSend);
   
   // Send encrypted message to the server
   connection.invoke("SendMessage", encryptedMessage)
@@ -108,11 +109,11 @@ if (connection){
 })
 }
 
-
+/* 
 async function encryptDataWithAESKey(key,plainText) {
   
   let plainTextAB = keymanager.str2ab(JSON.stringify(plainText))
-
+  
   let  iv = window.crypto.getRandomValues(new Uint8Array(16));
   let encrypteText = await window.crypto.subtle.encrypt(
     {
@@ -128,6 +129,7 @@ async function encryptDataWithAESKey(key,plainText) {
     let encryptedDataWithPlainIV={iv:keymanager.ab2str(iv),body:keymanager.ab2str(encrypteText)}
   return encryptedDataWithPlainIV
 }
+*/
 
 
 
@@ -155,7 +157,7 @@ Welcome to room {roomid}</p>
         <button type="button" onClick={handleSubmit}>Print Text </button>
       </form>
     </div>
-    <FileUploadPage keyManager={keys}room={roomName}></FileUploadPage>
+    <FileUploadPage keys={keys}room={roomName}handleSubmit={handleSubmit}></FileUploadPage>
 </>
 )
 
