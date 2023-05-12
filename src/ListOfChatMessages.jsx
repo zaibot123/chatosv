@@ -107,7 +107,17 @@ if (connection){
     console.log(error)
   }  
 })
+
+
+
+
+
+
+
+
 }
+
+
 
 /* 
 async function encryptDataWithAESKey(key,plainText) {
@@ -149,11 +159,19 @@ return(
 <p className="text-3xl text-center">Hey {name}
 <br></br>
 Welcome to room {roomid}</p>
-{listOfMessages.map(x => <ChatMessage message={x} key={x.messageID}/>)}
+<div class=" flex flex-row h-screen/2">
+<div class=" w-1/5 h-1/3 flex max-h-screen overflow-y-auto flex-col flex-grow bg-purple-50 flex flex-row h-screen">
 
-<div>
-      <form >
-        <textarea value={text} onChange={e => setText(e.target.value)} />
+{listOfMessages.map(x => <ChatMessage message={x} key={x.messageID}/>)}
+</div>
+</div>
+<div >
+      <form > 
+        <textarea
+        class="peer h-full min-h-[100px] w-full resize-none rounded-[7px] border border-blue-gray-200 border-t-transparent bg-transparent px-3 py-2.5 font-sans text-sm font-normal text-blue-gray-700 outline outline-0 transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200 placeholder-shown:border-t-blue-gray-200 focus:border-2 focus:border-pink-500 focus:border-t-transparent focus:outline-0 disabled:resize-none disabled:border-0 disabled:bg-blue-gray-50"
+        placeholder=" "  value={text} onChange={e => setText(e.target.value)} 
+      ></textarea>
+        {/* <textarea  value={text} onChange={e => setText(e.target.value)} /> */}
         <button type="button" onClick={handleSubmit}>Print Text </button>
       </form>
     </div>

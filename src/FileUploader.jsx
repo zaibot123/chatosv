@@ -29,14 +29,19 @@ function FileUploadPage({keys,room,handleSubmit}){
           return
         }
         console.log(selectedFile)
-      const url ="http://77.33.131.228:3000/api/databaseapi/upload"
+      const url ="http://130.226.173.84:3000/api/databaseapi/upload"
       setLoading("true")
       let nameArraySplit=selectedFile.name.split(".")
-      let extension=nameArraySplit.slice(-1)
+      let extention=nameArraySplit.slice(-1)
       let encryptedFileString =keymanager.encryptDataWithAESKey(selectedFile)
-      let encryptedByteFile=new Blob([encryptedFileString], { type: extension });
+      let encryptedByteFile=new Blob([encryptedFileString], { type: extention });
       encryptedByteFile = await getAsByteArray(encryptedByteFile)
-       let bodyData={"file":encryptedByteFile, "extention" : extension, "name":selectedFile.name, "iv":encryptedFileString.iv, "room":room}
+       let bodyData={
+          "file":encryptedByteFile, 
+          "extention" : extention, 
+          "name":selectedFile.name, 
+          "iv":encryptedFileString.iv, 
+          "room":room}
        let result =await fetch(url,{
           method: "POST", 
           // mode: "cors",
@@ -58,7 +63,7 @@ function FileUploadPage({keys,room,handleSubmit}){
 
 
     async function handleDownload(){
-      const url = "http://77.33.131.228:3000/api/databaseapi/10"
+      const url = "http://130.226.173.84:3000/api/databaseapi/10"
       let result = await fetch(url, {
         method: "GET" // default, so we can ignore
     })
