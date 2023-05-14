@@ -10,7 +10,6 @@ import { useNavigate, useLocation} from "react-router-dom";
 import FileUploadPage from "./FileUploader";
 import { HubConnectionBuilder } from '@microsoft/signalr';
 import keyManager from "./keyManager";
-import { splitVendorChunkPlugin } from "vite";
 
 
 function ListOfChatMessages({listOfChatMessages}){
