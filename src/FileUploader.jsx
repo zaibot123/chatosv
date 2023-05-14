@@ -29,7 +29,7 @@ function FileUploadPage({keys,room,handleSubmit}){
           return
         }
         console.log(selectedFile)
-      const url ="http://130.226.173.84:3000/api/databaseapi/upload"
+      const url ="https://77.33.131.228:3000/api/databaseapi/upload"
       setLoading("true")
       let nameArraySplit=selectedFile.name.split(".")
       let extention=nameArraySplit.slice(-1)
@@ -63,7 +63,7 @@ function FileUploadPage({keys,room,handleSubmit}){
 
 
     async function handleDownload(){
-      const url = "http://130.226.173.84:3000/api/databaseapi/10"
+      const url = "https://77.33.131.228:3000/api/databaseapi/10"
       let result = await fetch(url, {
         method: "GET" // default, so we can ignore
     })

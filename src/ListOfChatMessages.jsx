@@ -159,23 +159,26 @@ return(
 <p className="text-3xl text-center">Hey {name}
 <br></br>
 Welcome to room {roomid}</p>
-<div class=" flex flex-row h-screen/2">
-<div class=" w-1/5 h-1/3 flex max-h-screen overflow-y-auto flex-col flex-grow bg-purple-50 flex flex-row h-screen">
+<div class = "grid grid-row-4" >
+  
+  <div class=" flex flex-row h-screen	height: 50vh">
+  <div class=" grid-row-span 2 w-1/5 flex max-h-full overflow-y-auto flex-col flex-grow bg-purple-50  ">
 
-{listOfMessages.map(x => <ChatMessage message={x} key={x.messageID}/>)}
-</div>
-</div>
-<div >
-      <form > 
-        <textarea
-        class="peer h-full min-h-[100px] w-full resize-none rounded-[7px] border border-blue-gray-200 border-t-transparent bg-transparent px-3 py-2.5 font-sans text-sm font-normal text-blue-gray-700 outline outline-0 transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200 placeholder-shown:border-t-blue-gray-200 focus:border-2 focus:border-pink-500 focus:border-t-transparent focus:outline-0 disabled:resize-none disabled:border-0 disabled:bg-blue-gray-50"
-        placeholder=" "  value={text} onChange={e => setText(e.target.value)} 
-      ></textarea>
-        {/* <textarea  value={text} onChange={e => setText(e.target.value)} /> */}
-        <button type="button" onClick={handleSubmit}>Print Text </button>
-      </form>
-    </div>
-    <FileUploadPage keys={keys}room={roomName}handleSubmit={handleSubmit}></FileUploadPage>
+  {listOfMessages.map(x => <ChatMessage message={x} key={x.messageID}/>)}
+  </div>
+  </div>
+  <div class="flex grow flex-grow: 1 grid grid-cols-7 gap-4">
+          <textarea
+          class=" col-span-6 peer h-1/2 min-h-[100px] w-full resize-none rounded-[7px] border border-blue-gray-200 border-t-transparent bg-transparent px-3 py-2.5 font-sans text-sm font-normal text-blue-gray-700 outline outline-0 transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200 placeholder-shown:border-t-blue-gray-200 focus:border-2 focus:border-pink-500 focus:border-t-transparent focus:outline-0 disabled:resize-none disabled:border-0 disabled:bg-blue-gray-50"
+          placeholder=" "  value={text} onChange={e => setText(e.target.value)}> 
+        </textarea>
+      <div class="grid grid-rows-3">
+        <div></div>
+          <button class = "flex bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded " type="button" onClick={handleSubmit}>Send message </button>
+      </div>
+      </div>
+      <FileUploadPage keys={keys}room={roomName}handleSubmit={handleSubmit}></FileUploadPage>
+  </div>
 </>
 )
 
