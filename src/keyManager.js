@@ -329,6 +329,8 @@ async decrpytAESKey(encryptedAESKeyString){
         // let plainTextAB = this.str2ab(JSON.stringify(plainText))
         
         let  iv = window.crypto.getRandomValues(new Uint8Array(16));
+        console.log("object: " + iv.length)
+        console.log("object: " + iv.byteLength)
         let encrypteText = await window.crypto.subtle.encrypt(
           {
             name: "AES-CBC",
@@ -340,18 +342,60 @@ async decrpytAESKey(encryptedAESKeyString){
           .catch(function (err) {
             console.error(err);
           });
-          let encryptedDataWithPlainIV={iv:this._arrayBufferToBase64(iv),body:this._arrayBufferToBase64(encrypteText)}
+          console.log("asdasdasd" + this.bin2String(encrypteText))
+          let encryptedDataWithPlainIV={iv:this.bin2String(iv),body:this.ab2str(encrypteText)}
           return encryptedDataWithPlainIV
         }
         
-        
+        async decryptFileWithAES(messageAndIVObject){
+          let IV = messageAndIVObject.iv;
+          console.log("messageAndIVObject.iv: " + IV)
+    
+          
+          let decryptedMessage = await window.crypto.subtle.decrypt(
+            {
+              name: "AES-CBC",
+              iv: this.string2Bin(IV)
+            },
+            this.AESKey,
+            messageAndIVObject.body
+            )
+  
+          //   let dec = new TextDecoder();
+          // console.log("decryptedMessage ab: " + decryptedMessage)
+          // console.log("decryptedMessage:: " + this.ab2str(decryptedMessage))
+          return (decryptedMessage)
+            
+          }
+          
+
+
+           bin2String(array) {
+            var result = "";
+            for (var i = 0; i < array.length; i++) {
+              result += String.fromCharCode(parseInt(array[i], 2));
+            }
+            return result;
+          }
+          
+         string2Bin(str) {
+            var result = [];
+            for (var i = 0; i < str.length; i++) {
+              result.push(str.charCodeAt(i).toString(2));
+            }
+            return result;
+          }
+
          _arrayBufferToBase64( buffer ) {
           var binary = '';
+          console.log("buffer: " + buffer)
           var bytes = new Uint8Array( buffer );
           var len = bytes.byteLength;
+          console.log("len: " + len)
           for (var i = 0; i < len; i++) {
             binary += String.fromCharCode( bytes[ i ] );
           }
+          console.log("arrayButterToBase64: " + window.btoa( binary ).length)
           return window.btoa( binary );
         }
       }
