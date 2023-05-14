@@ -12,7 +12,7 @@ import { HubConnectionBuilder } from '@microsoft/signalr';
 import keyManager from "./keyManager";
 
 
-function ListOfChatMessages({listOfChatMessages, roomName}){
+function ListOfChatMessages({listOfChatMessages}){
   
   let [text, setText] = useState("")
   const {state} = useLocation();
@@ -177,7 +177,7 @@ Welcome to room {roomid}</p>
           <button class = "flex bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded " type="button" onClick={handleSubmit}>Send message </button>
       </div>
       </div>
-      <FileUploadPage keys={keys}room={roomName}handleSubmit={handleSubmit}></FileUploadPage>
+      <FileUploadPage keys={keys}room={roomid}handleSubmit={handleSubmit}></FileUploadPage>
   </div>
 </>
 )

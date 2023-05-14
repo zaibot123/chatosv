@@ -316,9 +316,45 @@ async decrpytAESKey(encryptedAESKeyString){
         return this.ab2str(decryptedMessage)
           
         }
-  }
-
-
-
-
-export default keyManager;
+        
+        
+        /**
+         * Encrypts a text using the the AES key and CBC.
+         * @param {string} key The key to encrypt the message 
+         * @param {string} plainText The text to encrypt 
+         * @returns Encrypted text as string
+        */
+       async encryptFileWithAESKey(plainText) {
+  
+        // let plainTextAB = this.str2ab(JSON.stringify(plainText))
+        
+        let  iv = window.crypto.getRandomValues(new Uint8Array(16));
+        let encrypteText = await window.crypto.subtle.encrypt(
+          {
+            name: "AES-CBC",
+            iv: iv,
+          },
+          this.AESKey, 
+          plainText 
+          )
+          .catch(function (err) {
+            console.error(err);
+          });
+          let encryptedDataWithPlainIV={iv:this._arrayBufferToBase64(iv),body:this._arrayBufferToBase64(encrypteText)}
+          return encryptedDataWithPlainIV
+        }
+        
+        
+         _arrayBufferToBase64( buffer ) {
+          var binary = '';
+          var bytes = new Uint8Array( buffer );
+          var len = bytes.byteLength;
+          for (var i = 0; i < len; i++) {
+            binary += String.fromCharCode( bytes[ i ] );
+          }
+          return window.btoa( binary );
+        }
+      }
+        
+        export default keyManager;
+        
