@@ -33,38 +33,42 @@ function ListOfChatMessages({listOfChatMessages}){
   async function handleDownload(id){
     console.log("handleDownload id: " + id)
     const url = "http://77.33.131.228:3000/api/databaseapi/"+id
+
     let result = await fetch(url, {
       method: "GET" // default, so we can ignore
   })
     .then(result => result.json())
    // let  BA=    utf8Encode.encode(result.fileData);
-  console.log("type: " + JSON.stringify(result))
   // console.log("decrypt" + await keymanager
   //   // .decryptFileWithAES(
   //   .decryptFileWithAES(
   //     result
   //     )+"decrypted")
-  let utf8Encode = new TextEncoder();
   // let  fileByteArray=    utf8Encode.encode(decryptedResult.data);
-  let  fileByteArray=    utf8Encode.encode(result);
-  let decrypted =  await keymanager
-  // .decryptFileWithAES(
-  .decryptFileWithAES(
-    // {iv: utf8Encode.encode(result.iv),
-    {iv: result.iv,
-      body : fileByteArray
-    }
-    )
+  // let utf8Encode = new TextEncoder();
+  // let  fileByteArray=    utf8Encode.encode(result);
+  console.log("after")
+  console.log(result)
+    
+    let decrypted =  await keymanager
+    .decryptFileWithAES(
+      {iv: result.iv,
+        body : result.fileData
+      }
+      )
+
+
     console.log("decrypted: " + decrypted)
-  var blob = new Blob([fileByteArray], { type: decrypted.extention });
-  saveAs(blob, 'test'+decryptedResult.extension)
+    // let decMsg = keymanager.ab2str(decrypted)
+    let decMsg = decrypted
+    console.log("DECRYPTED: " + decMsg)
+  //  var blob = new Blob([fileByteArray], { type: decrypted.extention });
+  // saveAs(blob, 'test'+decryptedResult.extension)
+    
   }
 
 // necessary to have a unique key for each message
-const incrementClientMsgId = () => {
-    setKey(key + 1);
-  };
-  
+
 function leaveRoom(){
   if(connection){
     connection.stop();
@@ -83,7 +87,7 @@ async function handleSubmit(isFile=false,fileData=""){
   let messageToSend;
   if(isFile){
     messageToSend= { 
-      id      :fileData.id, 
+      fileId      :fileData.id, 
       textContent:fileData.name,
       // isFile:true,
       // textContent      :encrypted, 
@@ -93,8 +97,9 @@ async function handleSubmit(isFile=false,fileData=""){
       timestamp        : time
     }
   } else{
+    console.log("SEND A MESSAGE, NOT A FILE FFS")
      messageToSend= { 
-      id: false,
+      fileId: "message",
       textContent      :text, 
       author           :name ,  
       isMessageFromUser:true,
@@ -110,7 +115,7 @@ async function handleSubmit(isFile=false,fileData=""){
   
   // Encrypting the message for the receivers
   let encryptedMessage = await keymanager.encryptDataWithAESKey(messageToSend);
-  console.log(encryptedMessage)
+  console.log("Sending encrypted msg: " + encryptedMessage)
   // Send encrypted message to the server
   await connection.invoke("SendMessage", encryptedMessage)
     
@@ -147,9 +152,9 @@ if (connection){
     // Setting values of the message object
     let today = new Date();
     var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-      console.log("id: " + JSON.stringify(jsonMessage))
+      console.log("id: " + JSON.stringify(jsonMessage.fileId))
     let receivedMessage = { 
-      id: jsonMessage.id,
+      fileId: jsonMessage.fileId,
       textContent   : jsonMessage.textContent, 
         author    :user ,  
         isMessageFromUser:false,
@@ -235,7 +240,7 @@ Welcome to room {roomid}</p>
         </textarea>
       <div class="grid grid-rows-3">
         <div></div>
-          <button class = "flex bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded " type="button" onClick={handleSubmit}>Send message </button>
+          <button class = "flex bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded " type="button" onClick={handleSubmit(false)}>Send message </button>
       </div>
       </div>
       <FileUploadPage messageID={messageID}keys={keys}room={roomid}handleSubmit={handleSubmit}></FileUploadPage>

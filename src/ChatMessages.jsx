@@ -5,11 +5,12 @@ import './App.css'
 function ChatMessage({message,file=false,handleDownload}){
       
   
-    if (message.id !== false)
+    if (message.fileId == "message" )
     {
-        console.log("test: " + message.id)
+        console.log("test: " + message.fileId)
       return (
         <div className>
+            AJAJAJAJ
     <div className={`${message.isMessageFromUser? "text-right": "text-left"}`}>
 	<div className={`${message.isMessageFromUser? "bg-teal-400 p-5 rounded-3xl my-6" : "bg-green-400 p-5 rounded-3xl my-6 "} space-y-20`}>
         <button onClick={()=>handleDownload(message.id)}>Download {message.textContent}</button>
@@ -28,6 +29,7 @@ function ChatMessage({message,file=false,handleDownload}){
     <div className={`${message.isMessageFromUser? "text-right": "text-left"}`}>
 	<div className={`${message.isMessageFromUser? "bg-teal-400 p-5 rounded-3xl my-6" : "bg-green-400 p-5 rounded-3xl my-6 "} space-y-20`}>
 		{message.textContent}
+
         </div>
     {message.author}, {message.timestamp}
 </div>

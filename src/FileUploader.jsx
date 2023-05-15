@@ -31,6 +31,10 @@ function FileUploadPage({keys,room,handleSubmit, messageID}){
       reader.readAsArrayBuffer(file)
     })
   }
+
+  /**
+   * 
+   */
     async function handleSubmission(event){
       event.preventDefault()
         if(!selectedFile){
@@ -41,37 +45,67 @@ function FileUploadPage({keys,room,handleSubmit, messageID}){
       setLoading("true")
     let nameArraySplit=selectedFile.name.split(".")
     let extention=nameArraySplit.slice(-1)
+    // const blob1 = new Blob(selectedFile)
+    
     let BAFile=await getAsByteArray(selectedFile)
+    // const blob2 = new Blob(BAFile)
+    
     console.log(BAFile+ "BA file")
-
+    
     let encrypted= await keymanager.encryptFileWithAESKey(BAFile)
+    // let decrypted= await keymanager.decryptFileWithAES(encrypted)
+    // console.log("QUICK DECRYPT: " + decrypted)
+    const blob1 = new Blob([encrypted.body])
     console.log("encrypted... " + JSON.stringify(encrypted))
     // console.log("BAfile base64: " + keymanager._arrayBufferToBase64(BAFile)) 
     
-
-        
-      //let encryptedByteFile= await new Blob([encryptedFileString], { type: extension });
-     // encryptedByteFile = await getAsByteArray(encryptedByteFile)
-    // await connection.invoke("SendMessage", encrypted)
-    let bodyData={
+    
+    // let bodyData= new FormData();
+    //   // "file":encrypted.body, 
+    //   bodyData.append("file",blob1)
+    //   bodyData.append("extention" , extention) 
+    //   bodyData.append("name",selectedFile.name) 
+    //   bodyData.append("id",room+messageID)
+    //   bodyData.append("iv",encrypted.iv)
+    //   bodyData.append("room",room)
+    //   bodyData.append("isFile",true)
+    let bodyData2={
+      // "file":encrypted.body, 
       "file":encrypted.body, 
-      "extention" : extention, 
+      "extention" : String(extention),
       "name":selectedFile.name, 
       "id":room+messageID,
       "iv":encrypted.iv, 
       "room":room,
-    "isFile":true}
+      "isFile":true}
+      
+var jsonstring=JSON.stringify(bodyData2)
+console.log(jsonstring)
+     var blob2 = new Blob([jsonstring], { type: "application/json" });
+     console.log(blob2.size+"SIZEE")
+
+    let bodyData={
+      // "file":encrypted.body, 
+      "file":"geh", 
+      "test":URL.createObjectURL(blob1),
+      "extention" : String(extention),
+      "name":selectedFile.name, 
+      "id":room+messageID,
+      "iv":encrypted.iv, 
+      "room":room,
+      "isFile":true}
       await handleSubmit(true,
         bodyData  
         );
-    console.log(bodyData)
-    let result =await fetch(url,{
+        // let bodydata1 = new FormData();
+        // bodydata1.append("file", bodyData);
+        console.log(bodyData.file)
+
+
+        let result =await fetch(url,{
       method: "POST", 
       // mode: "cors",
-      headers: {
-        "Content-Type": "multipart/form-data",
-        },
-      body:JSON.stringify( bodyData)
+      body:blob2
       })
       setLoading("false")
       console.log(result.text+ "Result")

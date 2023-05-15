@@ -168,7 +168,7 @@ class keyManager {
     return buf;
   }
 
-
+ 
 
 
   // Using SRKI key format to 
@@ -299,7 +299,11 @@ async decrpytAESKey(encryptedAESKeyString){
  */
       async decryptMessageWithAES(messageAndIVObject){
         let IV = messageAndIVObject.iv;
-  
+        console.log(IV+ " "+IV.length+"IV1")
+        console.log(IV+ " "+this.str2ab(IV)+"IV1")
+        console.log("1AESKey: "+ this.AESKey)
+        console.log("1BODY: "+ messageAndIVObject.body)
+        console.log("1BODY type : "+typeof(messageAndIVObject.body))
         
         let decryptedMessage = await window.crypto.subtle.decrypt(
           {
@@ -319,16 +323,17 @@ async decrpytAESKey(encryptedAESKeyString){
         
         
         /**
-         * Encrypts a text using the the AES key and CBC.
+         * Encrypts a file using the the AES key and CBC.
          * @param {string} key The key to encrypt the message 
          * @param {string} plainText The text to encrypt 
          * @returns Encrypted text as string
         */
        async encryptFileWithAESKey(plainText) {
   
+     
         // let plainTextAB = this.str2ab(JSON.stringify(plainText))
         
-        let  iv = window.crypto.getRandomValues(new Uint8Array(16));
+        let  iv =this.createIV();
         console.log("object: " + iv.length)
         console.log("object: " + iv.byteLength)
         let encrypteText = await window.crypto.subtle.encrypt(
@@ -342,25 +347,62 @@ async decrpytAESKey(encryptedAESKeyString){
           .catch(function (err) {
             console.error(err);
           });
-          console.log("asdasdasd" + this.bin2String(encrypteText))
-          let encryptedDataWithPlainIV={iv:this.bin2String(iv),body:this.ab2str(encrypteText)}
+          // let encryptedDataWithPlainIV={iv:this.bin2String(iv),body:this._arrayBufferToBase64(encrypteText)}
+          // let encryptedDataWithPlainIV={iv:iv,body:encrypteText}
+          // let simpleByteArray=[]
+          // iv.forEach(byte => {
+          //   simpleByteArray.push(byte) 
+          // });
+          // let encryptedDataWithPlainIV={iv:String(simpleByteArray),body:this._arrayBufferToBase64(encrypteText)}
+          let encryptedDataWithPlainIV={iv:this.ab2str(iv),body:this._arrayBufferToBase64(encrypteText)}
           return encryptedDataWithPlainIV
         }
         
-        async decryptFileWithAES(messageAndIVObject){
-          let IV = messageAndIVObject.iv;
-          console.log("messageAndIVObject.iv: " + IV)
-    
+
+
+
+        
+    async decryptFileWithAES(messageAndIVObject){
+      
+      let IV = await messageAndIVObject.iv;
+      
+      
+      // Calling randomBytes method without callback
+      console.log(IV+ " "+IV.length+"IV")
+      console.log(IV+ " "+this.str2ab(IV)+"IV")
+      console.log("AESKey: "+ this.AESKey)
+      console.log("BODY: "+ messageAndIVObject.body)
+      console.log("BODY type : "+typeof(messageAndIVObject.body))
+      let decryptedMessage = "default"
+      
+      try {
+        
+        // let decryptedMessage = "default";
+        decryptedMessage = await window.crypto.subtle.decrypt(
+          {
+            name: "AES-CBC",
+            iv:this.str2ab(IV)
+          },
+          this.AESKey,
+          this.str2ab(messageAndIVObject.body)
+          // new ArrayBuffer(8)
+          )
           
-          let decryptedMessage = await window.crypto.subtle.decrypt(
-            {
-              name: "AES-CBC",
-              iv: this.string2Bin(IV)
-            },
-            this.AESKey,
-            messageAndIVObject.body
-            )
-  
+        }
+        catch (e) {
+          // if (e instanceof TypeError) {
+          //   // statements to handle TypeError exceptions
+          // } else if (e instanceof RangeError) {
+          //   // statements to handle RangeError exceptions
+          // } else if (e instanceof EvalError) {
+          //   // statements to handle EvalError exceptions
+        
+        // catch (error) {
+        //   decryptedMessage = "ERROR"
+        //   console.error();  
+        }
+            console.log("After drcryption")
+            console.log("decryptedMSG: " + decryptedMessage)
           //   let dec = new TextDecoder();
           // console.log("decryptedMessage ab: " + decryptedMessage)
           // console.log("decryptedMessage:: " + this.ab2str(decryptedMessage))
@@ -397,6 +439,13 @@ async decrpytAESKey(encryptedAESKeyString){
           }
           console.log("arrayButterToBase64: " + window.btoa( binary ).length)
           return window.btoa( binary );
+        }
+
+        createIV() {
+          const array = new Uint8Array(16);
+          let iv=self.crypto.getRandomValues(array);
+          console.log(iv)
+         return iv
         }
       }
         
