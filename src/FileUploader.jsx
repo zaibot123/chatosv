@@ -5,7 +5,7 @@ import {ConnectionContext} from "./ConnectionContext";
 
 
 
-function FileUploadPage({keys,room,handleSubmit, messageID}){
+function FileUploadPage({keys,room,handleSubmit, messageId}){
 	const [selectedFile, setSelectedFile] = useState();
   const [loading, setLoading] = useState("false");
   let {connection,setConnection}=useContext(ConnectionContext);
@@ -41,6 +41,7 @@ function FileUploadPage({keys,room,handleSubmit, messageID}){
           alert("choose a file")
           return
         }
+      // const url ="http://77.33.131.228:3000/api/databaseapi/upload"
       const url ="http://77.33.131.228:3000/api/databaseapi/upload"
       setLoading("true")
     let nameArraySplit=selectedFile.name.split(".")
@@ -74,7 +75,7 @@ function FileUploadPage({keys,room,handleSubmit, messageID}){
       "file":encrypted.body, 
       "extention" : String(extention),
       "name":selectedFile.name, 
-      "id":room+messageID,
+      "id":room+messageId,
       "iv":encrypted.iv, 
       "room":room,
       "isFile":true}
@@ -90,7 +91,7 @@ console.log(jsonstring)
       "test":URL.createObjectURL(blob1),
       "extention" : String(extention),
       "name":selectedFile.name, 
-      "id":room+messageID,
+      "id":room+messageId,
       "iv":encrypted.iv, 
       "room":room,
       "isFile":true}

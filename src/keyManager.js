@@ -153,6 +153,7 @@ class keyManager {
   str2ab(str) {
     const buf = new ArrayBuffer(str.length);
     const bufView = new Uint8Array(buf);
+    // for (let i = 0, strLen = str.length; i < strLen; i++) {
     for (let i = 0, strLen = str.length; i < strLen; i++) {
       bufView[i] = str.charCodeAt(i);
     }
@@ -334,8 +335,7 @@ async decrpytAESKey(encryptedAESKeyString){
         // let plainTextAB = this.str2ab(JSON.stringify(plainText))
         
         let  iv =this.createIV();
-        console.log("object: " + iv.length)
-        console.log("object: " + iv.byteLength)
+        console.log("object: " + iv)
         let encrypteText = await window.crypto.subtle.encrypt(
           {
             name: "AES-CBC",
@@ -354,7 +354,8 @@ async decrpytAESKey(encryptedAESKeyString){
           //   simpleByteArray.push(byte) 
           // });
           // let encryptedDataWithPlainIV={iv:String(simpleByteArray),body:this._arrayBufferToBase64(encrypteText)}
-          let encryptedDataWithPlainIV={iv:this.ab2str(iv),body:this._arrayBufferToBase64(encrypteText)}
+          console.log("encoded IV:  " + this._arrayBufferToBase64(iv))
+          let encryptedDataWithPlainIV={iv:this._arrayBufferToBase64(iv),body:this._arrayBufferToBase64(encrypteText)}
           return encryptedDataWithPlainIV
         }
         
@@ -364,11 +365,11 @@ async decrpytAESKey(encryptedAESKeyString){
         
     async decryptFileWithAES(messageAndIVObject){
       
-      let IV = await messageAndIVObject.iv;
+      let IV = await this.base64ToArrayBuffer(messageAndIVObject.iv);
       
       
       // Calling randomBytes method without callback
-      console.log(IV+ " "+IV.length+"IV")
+      console.log("IV" + IV+ " "+IV.length)
       console.log(IV+ " "+this.str2ab(IV)+"IV")
       console.log("AESKey: "+ this.AESKey)
       console.log("BODY: "+ messageAndIVObject.body)
@@ -381,32 +382,21 @@ async decrpytAESKey(encryptedAESKeyString){
         decryptedMessage = await window.crypto.subtle.decrypt(
           {
             name: "AES-CBC",
-            iv:this.str2ab(IV)
+            iv: IV
           },
           this.AESKey,
-          this.str2ab(messageAndIVObject.body)
-          // new ArrayBuffer(8)
+          this.base64ToArrayBuffer(messageAndIVObject.body)
           )
           
         }
         catch (e) {
-          // if (e instanceof TypeError) {
-          //   // statements to handle TypeError exceptions
-          // } else if (e instanceof RangeError) {
-          //   // statements to handle RangeError exceptions
-          // } else if (e instanceof EvalError) {
-          //   // statements to handle EvalError exceptions
-        
-        // catch (error) {
-        //   decryptedMessage = "ERROR"
-        //   console.error();  
         }
             console.log("After drcryption")
             console.log("decryptedMSG: " + decryptedMessage)
           //   let dec = new TextDecoder();
           // console.log("decryptedMessage ab: " + decryptedMessage)
           // console.log("decryptedMessage:: " + this.ab2str(decryptedMessage))
-          return (decryptedMessage)
+          return (this.ab2str(decryptedMessage))
             
           }
           
@@ -428,18 +418,16 @@ async decrpytAESKey(encryptedAESKeyString){
             return result;
           }
 
-         _arrayBufferToBase64( buffer ) {
-          var binary = '';
-          console.log("buffer: " + buffer)
-          var bytes = new Uint8Array( buffer );
-          var len = bytes.byteLength;
-          console.log("len: " + len)
-          for (var i = 0; i < len; i++) {
-            binary += String.fromCharCode( bytes[ i ] );
+          _arrayBufferToBase64( buffer ) {
+            var binary = '';
+            var bytes = new Uint8Array( buffer );
+            var len = bytes.byteLength;
+            for (var i = 0; i < len; i++) {
+              binary += String.fromCharCode( bytes[ i ] );
+            }
+            console.log("binary length: " + binary.length)
+            return window.btoa( binary );
           }
-          console.log("arrayButterToBase64: " + window.btoa( binary ).length)
-          return window.btoa( binary );
-        }
 
         createIV() {
           const array = new Uint8Array(16);
@@ -447,6 +435,21 @@ async decrpytAESKey(encryptedAESKeyString){
           console.log(iv)
          return iv
         }
+
+
+
+ base64ToArrayBuffer(base64) {
+    var binary_string =  window.atob(base64);
+    var len = binary_string.length;
+    var bytes = new Uint8Array( len );
+    for (var i = 0; i < len; i++)        {
+        bytes[i] = binary_string.charCodeAt(i);
+    }
+    console.log("base64 to bugger length: " +bytes.buffer.byteLength )
+    return bytes.buffer;
+}
+
+
       }
         
         export default keyManager;
