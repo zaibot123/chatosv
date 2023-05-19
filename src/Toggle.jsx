@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
-export default function Toggle() {
-  let [changeText, setChangeText] = useState(false);
+export default function Toggle(changeText) {
+  // let [changeText, setChangeText] = useState(false);
   const handleChange = () => {
     console.log(changeText)
     return setChangeText(!changeText);

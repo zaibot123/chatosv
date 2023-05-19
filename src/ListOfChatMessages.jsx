@@ -96,6 +96,8 @@ async function handleSubmit(isFile=false,fileData=""){
   let today = new Date();
   var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
   let messageToSend;
+  let encryptedBody = await keymanager.encryptDataWithAESKey(text)
+  console.log(encryptedBody)
   if(isFile){
     messageToSend= { 
       fileId      :fileData.id, 
@@ -111,6 +113,7 @@ async function handleSubmit(isFile=false,fileData=""){
      messageToSend= { 
       fileId: "message",
       textContent      :text, 
+      encrypted: encryptedBody,
       // textContent      :"text", 
       author           :name ,  
       isMessageFromUser:true,
@@ -123,7 +126,7 @@ async function handleSubmit(isFile=false,fileData=""){
   var temporaryMsgArray = listOfMessages
   temporaryMsgArray.push(messageToSend)
   setListOfMessages(temporaryMsgArray);
-  
+  console.log(messageToSend)
   // Encrypting the message for the receivers
   // Send encrypted message to the server
   let encryptedMessage = await keymanager.encryptDataWithAESKey(messageToSend);
@@ -172,7 +175,7 @@ if (connection){
       let today = new Date();
       var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
       let receivedMessage = { 
-        encrypted:encryptedMsg.body,
+        encrypted:encryptedMsg,
         fileId: jsonMessage.fileId,
         textContent   : jsonMessage.textContent, 
         author    :user ,  
@@ -202,16 +205,23 @@ if (connection){
 
 }
 
+const handleChange = () => {
+  console.log(changeText)
+  return setChangeText(!changeText);
+};
 
 
-
+console.log(changeText)
 return(
 <>
 
 
 <div class="flex mb-0">
 <div class="w-1/10">
-<Toggle></Toggle>
+<div>
+      <button onClick={() => handleChange()}>Toggle text representation</button>
+      {changeText ? "Plaintext" : "Encrypted"}
+    </div>
 <button type="button"  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"onClick={(e)=>leaveRoom() }>
 Leave room
 </button>
@@ -229,7 +239,8 @@ Welcome to room {roomid}</p>
   <div class=" grid-row-span 2 w-1/5 flex max-h-full overflow-y-auto flex-col flex-grow bg-purple-50  ">
 
 {
-  listOfMessages.map(x => <ChatMessage showEncryptedMessage={changeText?true:false} handleDownload={handleDownload} message={x} key={x.messageID}/>)}
+  listOfMessages.map(x => <ChatMessage showEncryptedMessage={changeText} handleDownload={handleDownload} message={x} key={x.messageID}/>)
+}
   </div>
   </div>
   <div class="flex grow flex-grow: 1 grid grid-cols-7 gap-4">
