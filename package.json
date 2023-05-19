@@ -13,6 +13,7 @@
     "@microsoft/signalr": "^8.0.0-preview.3.23177.8",
     "crypto": "^1.0.1",
     "crypto-js": "^4.1.1",
+    "file-saver": "^2.0.5",
     "jsencrypt": "^3.3.2",
     "node-jwk": "^0.1.0",
     "randombytes": "^2.1.0",

@@ -300,11 +300,6 @@ async decrpytAESKey(encryptedAESKeyString){
  */
       async decryptMessageWithAES(messageAndIVObject){
         let IV = messageAndIVObject.iv;
-        console.log(IV+ " "+IV.length+"IV1")
-        console.log(IV+ " "+this.str2ab(IV)+"IV1")
-        console.log("1AESKey: "+ this.AESKey)
-        console.log("1BODY: "+ messageAndIVObject.body)
-        console.log("1BODY type : "+typeof(messageAndIVObject.body))
         
         let decryptedMessage = await window.crypto.subtle.decrypt(
           {
@@ -335,7 +330,6 @@ async decrpytAESKey(encryptedAESKeyString){
         // let plainTextAB = this.str2ab(JSON.stringify(plainText))
         
         let  iv =this.createIV();
-        console.log("object: " + iv)
         let encrypteText = await window.crypto.subtle.encrypt(
           {
             name: "AES-CBC",
@@ -354,7 +348,6 @@ async decrpytAESKey(encryptedAESKeyString){
           //   simpleByteArray.push(byte) 
           // });
           // let encryptedDataWithPlainIV={iv:String(simpleByteArray),body:this._arrayBufferToBase64(encrypteText)}
-          console.log("encoded IV:  " + this._arrayBufferToBase64(iv))
           let encryptedDataWithPlainIV={iv:this._arrayBufferToBase64(iv),body:this._arrayBufferToBase64(encrypteText)}
           return encryptedDataWithPlainIV
         }
@@ -369,11 +362,6 @@ async decrpytAESKey(encryptedAESKeyString){
       
       
       // Calling randomBytes method without callback
-      console.log("IV" + IV+ " "+IV.length)
-      console.log(IV+ " "+this.str2ab(IV)+"IV")
-      console.log("AESKey: "+ this.AESKey)
-      console.log("BODY: "+ messageAndIVObject.body)
-      console.log("BODY type : "+typeof(messageAndIVObject.body))
       let decryptedMessage = "default"
       
       try {
@@ -389,10 +377,7 @@ async decrpytAESKey(encryptedAESKeyString){
           )
           
         }
-        catch (e) {
-        }
-            console.log("After drcryption")
-            console.log("decryptedMSG: " + decryptedMessage)
+        catch (e) {}
           //   let dec = new TextDecoder();
           // console.log("decryptedMessage ab: " + decryptedMessage)
           // console.log("decryptedMessage:: " + this.ab2str(decryptedMessage))
@@ -425,7 +410,6 @@ async decrpytAESKey(encryptedAESKeyString){
             for (var i = 0; i < len; i++) {
               binary += String.fromCharCode( bytes[ i ] );
             }
-            console.log("binary length: " + binary.length)
             return window.btoa( binary );
           }
 

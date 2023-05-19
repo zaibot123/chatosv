@@ -1,9 +1,9 @@
 import React from "react";
 import './App.css'
+import { useState } from "react";
 
 
-function ChatMessage({message,file=false,handleDownload}){
-      
+function ChatMessage({showEncryptedMessage,message,file=false,handleDownload}){
   
     if (message.fileId != "message" )
     {
@@ -13,9 +13,8 @@ function ChatMessage({message,file=false,handleDownload}){
             AJAJAJAJ
     <div className={`${message.isMessageFromUser? "text-right": "text-left"}`}>
 	<div className={`${message.isMessageFromUser? "bg-teal-400 p-5 rounded-3xl my-6" : "bg-green-400 p-5 rounded-3xl my-6 "} space-y-20`}>
-        <button onClick={()=>handleDownload(message.id)}>Download {message.textContent}</button>
-        {/* <button onClick={()=>handleDownload("y3pcGAHv0")}>Download {message.textContent}</button> */}
-"
+        <button onClick={()=>handleDownload(message.fileId)}>Download {showEncryptedMessage? message.encrypted: message.textContent}</button>
+
         </div>
     {message.author}, {message.timestamp}
  </div>
@@ -29,11 +28,11 @@ function ChatMessage({message,file=false,handleDownload}){
     <div className>
     <div className={`${message.isMessageFromUser? "text-right": "text-left"}`}>
 	<div className={`${message.isMessageFromUser? "bg-teal-400 p-5 rounded-3xl my-6" : "bg-green-400 p-5 rounded-3xl my-6 "} space-y-20`}>
-		{message.textContent}
+    {showEncryptedMessage? message.encrypted: message.textContent}
 
         </div>
     {message.author}, {message.timestamp}
-</div>
+</div>  
 </div>
     )
     }

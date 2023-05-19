@@ -40,3 +40,9 @@
 .read-the-docs {
   color: #888;
 }
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 400px; /* Adjust the maximum height to your desired size */
+}

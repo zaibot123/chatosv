@@ -82,8 +82,7 @@ function FileUploadPage({keys,room,handleSubmit, messageId}){
       
 var jsonstring=JSON.stringify(bodyData2)
 console.log(jsonstring)
-     var blob2 = new Blob([jsonstring], { type: "application/json" });
-     console.log(blob2.size+"SIZEE")
+     var blob2 = new Blob([jsonstring], { type: "application/pdf" });
 
     let bodyData={
       // "file":encrypted.body, 
@@ -109,7 +108,7 @@ console.log(jsonstring)
       body:blob2
       })
       setLoading("false")
-      console.log(result.text+ "Result")
+      console.log(await blob2.type+ "Result")
       // handleSubmit(bodyData)
     }
 

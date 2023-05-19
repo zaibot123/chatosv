@@ -125,11 +125,9 @@ if (connection){
    connection.on("ReceiveKey",
    async function (encryptedAESKey){
     // set the encrypted symmetric key
-    
     await keymanager.decrpytAESKey(encryptedAESKey)
-
-    console.log("AES HER--- " + keymanager.AESKey)
     navigate("/chat/"+id, {state:{keys:keymanager}})
+
 
     // console.log("private key: " + keymanager.privateKey)
     // keymanager.AESKey = encryptedAESKey;
