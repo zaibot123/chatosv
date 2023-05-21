@@ -13,7 +13,7 @@ import keyManager from "./keyManager";
 import { saveAs } from 'file-saver';
 import Toggle from './Toggle';
 import  { useRef } from 'react';
-
+import ChatComponent from "./ChatComponent";
 
 
 
@@ -32,14 +32,13 @@ function ListOfChatMessages({listOfChatMessages}){
   let [listOfMessages,setListOfMessages] =useState([])
   // let [key,setKey]=useState(0)
   // let [messageID2,setMessageID2]=useState(0)
-  let [messageID,setMessageID]=useState(0)
-  // let messageID = 0;
+  // let [messageID,setMessageID]=useState(0)
+  let messageID = 0;
   let key = 0;
 
-  const handleNewMessage = (message) => {
-    setListOfMessages((prevMessages) => [...prevMessages, message]);
-  }
-
+  useEffect(() => {
+    console.log("object23234234")
+  }, [listOfMessages]);
 //   const scrollRef = useRef();
 
 // useEffect(() => {
@@ -123,7 +122,7 @@ async function handleSubmit(isFile=false,fileData=""){
   }
   // setMessageID(key + "a")
     // Setting values of the message object
-  var temporaryMsgArray = listOfMessages
+    const temporaryMsgArray = [...listOfMessages];
   temporaryMsgArray.push(messageToSend)
   setListOfMessages(temporaryMsgArray);
   console.log(messageToSend)
@@ -145,10 +144,12 @@ if (connection){
   connection.on("GetRoomId", function (messageId) {
     try {
       const msgID = messageId
+      messageID = msgID
       // messageID = messageId
-    setMessageID(msgID)
+      console.log("messageID: " + messageID)
+      // setMessageID(msgID)
+      // console.log("messageID2: " + messageID)
     // setMessageID2(msgID)
-    // console.log("messageID: " + messageID)
     // console.log("messageID2: " + messageID2)
     // console.log("messageId: " + messageId)
     // console.log("msgID: " + msgID)
@@ -165,7 +166,7 @@ if (connection){
   async function (user, encryptedMsg, messageId) {
     try {
       messageID = messageId
-      setMessageID(messageId)
+      // setMessageID(messageId)
       key = messageId;
       // setKey(messageId)
       // Decrypting the message received from the server
@@ -180,14 +181,17 @@ if (connection){
         textContent   : jsonMessage.textContent, 
         author    :user ,  
         isMessageFromUser:false,
-        messageId :messageId,
+        messageId :messageID,
         timestamp :  time}
         
         // Adding the messages to current client's screen  
-        var temporaryMsgArray =[]
+        // var temporaryMsgArray =[]
+        const temporaryMsgArray = [...listOfMessages];
+        /* 
         await listOfMessages.forEach(element => {
           temporaryMsgArray.push(element)
         });
+        */
         await temporaryMsgArray.push(receivedMessage)
         await setListOfMessages(temporaryMsgArray);
         
@@ -212,37 +216,38 @@ const handleChange = () => {
 
 
 console.log(changeText)
-return(
-<>
-
-
-<div class="flex mb-0">
-<div class="w-1/10">
-<div>
-      <button onClick={() => handleChange()}>Toggle text representation</button>
-      {changeText ? "Plaintext" : "Encrypted"}
+return (
+  <>
+    <div className="flex mb-0">
+      <div className="w-1/10">
+        <div>
+          <button onClick={handleChange}>
+            Toggle text representation
+          </button>
+          {changeText ? "Plaintext" : "Encrypted"}
+        </div>
+        <button
+          type="button"
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          onClick={leaveRoom}
+        >
+          Leave room
+        </button>
+      </div>
     </div>
-<button type="button"  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"onClick={(e)=>leaveRoom() }>
-Leave room
-</button>
-</div>
-</div>
-<div class="">
-</div>
 
-<p className="text-3xl text-center">Hey {name}
-<br></br>
-Welcome to room {roomid}</p>
-<div class = "grid grid-row-4" >
+    <p className="text-3xl text-center">
+      Hey {name}
+      <br />
+      Welcome to room {roomid}
+    </p>
 
-  <div class=" flex flex-row h-screen	height: 50vh">
-  <div class=" grid-row-span 2 w-1/5 flex max-h-full overflow-y-auto flex-col flex-grow bg-purple-50  ">
-
-{
-  listOfMessages.map(x => <ChatMessage showEncryptedMessage={changeText} handleDownload={handleDownload} message={x} key={x.messageID}/>)
-}
-  </div>
-  </div>
+    <div className="grid grid-row-4">
+    <div className="flex flex-row h-screen height: 50vh">
+        <div className="grid-row-span 2 w-1/5 flex max-h-full overflow-y-auto flex-col flex-grow bg-purple-50">
+      <ChatComponent listOfChatMessages={listOfMessages} handleDownload={handleDownload} changeText={changeText}/>
+      </div>
+      </div>
   <div class="flex grow flex-grow: 1 grid grid-cols-7 gap-4">
   <textarea
   class=" col-span-6 peer h-1/2 min-h-[100px] w-full resize-none 
@@ -265,7 +270,6 @@ Welcome to room {roomid}</p>
   </div>
   </>
   )
-  
 }
 
 export default ListOfChatMessages;
