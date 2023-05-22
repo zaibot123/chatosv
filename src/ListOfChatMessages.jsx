@@ -30,15 +30,14 @@ function ListOfChatMessages({listOfChatMessages}){
   let {connection,setConnection}=useContext(ConnectionContext);
   let[loading,setLoading]=useState(false);
   let [listOfMessages,setListOfMessages] =useState([])
-  // let [key,setKey]=useState(0)
-  // let [messageID2,setMessageID2]=useState(0)
   // let [messageID,setMessageID]=useState(0)
-  let messageID = 0;
-  let key = 0;
+  let messageID = 1;
 
   useEffect(() => {
-    console.log("object23234234")
-  }, [listOfMessages]);
+    // Update the document title using the browser API
+    console.log("!!")
+  });
+
 //   const scrollRef = useRef();
 
 // useEffect(() => {
@@ -116,16 +115,17 @@ async function handleSubmit(isFile=false,fileData=""){
       // textContent      :"text", 
       author           :name ,  
       isMessageFromUser:true,
-      messageId        :messageID ,
+      messageId        :messageID +1 ,
       timestamp        : time
     }
   }
   // setMessageID(key + "a")
     // Setting values of the message object
-    const temporaryMsgArray = [...listOfMessages];
-  temporaryMsgArray.push(messageToSend)
-  setListOfMessages(temporaryMsgArray);
-  console.log(messageToSend)
+    setListOfMessages(function (x) {
+      const temporaryMsgArray = [...x];
+      temporaryMsgArray.push(messageToSend)
+      return temporaryMsgArray  
+    } );
   // Encrypting the message for the receivers
   // Send encrypted message to the server
   let encryptedMessage = await keymanager.encryptDataWithAESKey(messageToSend);
@@ -144,73 +144,66 @@ if (connection){
   connection.on("GetRoomId", function (messageId) {
     try {
       const msgID = messageId
-      messageID = msgID
-      // messageID = messageId
+      // messageID = msgID
+      messageID = messageId
       console.log("messageID: " + messageID)
-      // setMessageID(msgID)
-      // console.log("messageID2: " + messageID)
-    // setMessageID2(msgID)
-    // console.log("messageID2: " + messageID2)
-    // console.log("messageId: " + messageId)
-    // console.log("msgID: " + msgID)
+      connection.off("GetRoomId")
     } catch (error) {
       console.log(error)
     }  
   }
-
-  
   )
 
+
   // Invoked from servers sides whenever someone else sends a message
+
   connection.on("ReceiveMessage",
-  async function (user, encryptedMsg, messageId) {
-    try {
-      messageID = messageId
-      // setMessageID(messageId)
-      key = messageId;
-      // setKey(messageId)
-      // Decrypting the message received from the server
-      let decryptedMsg = await keymanager.decryptMessageWithAES(encryptedMsg)
-      let jsonMessage = JSON.parse(decryptedMsg)
-      // Setting values of the message object
-      let today = new Date();
-      var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-      let receivedMessage = { 
-        encrypted:encryptedMsg,
-        fileId: jsonMessage.fileId,
-        textContent   : jsonMessage.textContent, 
-        author    :user ,  
-        isMessageFromUser:false,
-        messageId :messageID,
-        timestamp :  time}
-        
-        // Adding the messages to current client's screen  
-        // var temporaryMsgArray =[]
-        const temporaryMsgArray = [...listOfMessages];
-        /* 
-        await listOfMessages.forEach(element => {
-          temporaryMsgArray.push(element)
-        });
-        */
-        await temporaryMsgArray.push(receivedMessage)
-        await setListOfMessages(temporaryMsgArray);
-        
-      } catch (error) {
-        console.log(error)
-      }  
-    })
 
+    async function (user, encryptedMsg, messageId) {
+      try {
+        messageID = messageId
+        console.log("message" + messageId)
+        // setMessageID(messageId)
 
+        // Decrypting the message received from the server
+        let decryptedMsg = await keymanager.decryptMessageWithAES(encryptedMsg)
+        let jsonMessage = JSON.parse(decryptedMsg)
+        // Setting values of the message object
+        let today = new Date();
+        var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+        let receivedMessage = { 
+          encrypted:encryptedMsg,
+          fileId: jsonMessage.fileId,
+          textContent   : jsonMessage.textContent, 
+          author    : user ,  
+          isMessageFromUser:false,
+          messageId :messageId,
+          timestamp :  time}
+          
+          // Adding the messages to current client's screen  
+          // const temporaryMsgArray = [...listOfMessages];
+          // temporaryMsgArray.push(receivedMessage)
+          // setListOfMessages(temporaryMsgArray);
+          setListOfMessages(function (x) {
+            const temporaryMsgArray = [...x];
+            temporaryMsgArray.push(receivedMessage)
+            return temporaryMsgArray  
+          } );
+          console.log("length: " + listOfMessages.length)
+          
+        } catch (error) {
+          console.log(error)
+        }  
+        connection.off("ReceiveMessage")
+      }
+      )
 
-
-
-
-
-
-}
+      
+    }
 
 const handleChange = () => {
   console.log(changeText)
+  console.log("!!!")
   return setChangeText(!changeText);
 };
 

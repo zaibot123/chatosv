@@ -3,7 +3,8 @@ import './App.css'
 import { useState } from "react";
 
 
-function ChatMessage({showEncryptedMessage,message,file=false,handleDownload}){
+// function ChatMessage({showEncryptedMessage,message,file=false,handleDownload}){
+function ChatMessage({showEncryptedMessage,message,file=false,handleDownload, index}){
     let [change, setChange] = useState(showEncryptedMessage);
 
     if (message.fileId != "message" )
@@ -32,7 +33,7 @@ function ChatMessage({showEncryptedMessage,message,file=false,handleDownload}){
     {showEncryptedMessage? "encrypted message" + message.encrypted.body + " \n v:" + message.encrypted.iv: message.textContent}
 
         </div>
-    {message.author}, {message.timestamp}
+    {message.author}, {message.timestamp}, {message.messageId}, index: {index}
 </div>  
 </div>
     )

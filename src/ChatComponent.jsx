@@ -7,26 +7,26 @@ function ChatComponent({ listOfChatMessages, handleDownload, changeText }) {
 
   useEffect(() => {
     scrollToBottom();
-    console.log("object")
   }, [listOfChatMessages]);
 
   const scrollToBottom = () => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-      console.log("object")
     }
   };
 
   return (
     <div ref={chatContainerRef} class="chat-container overflow-y-auto ">
       {
-      listOfChatMessages.map((message) => (
-        console.log(message.messageId),
+      
+      listOfChatMessages.map((message, index) => (
+        console.log(index),
         <ChatMessage
           key={message.messageId}
           showEncryptedMessage={changeText}
           handleDownload={handleDownload}
           message={message}
+          index = {index}
         />
       ))}
     </div>
