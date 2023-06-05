@@ -11,13 +11,6 @@ function FileUploadPage({ keys, room, handleSubmit, messageId }) {
   let { connection, setConnection } = useContext(ConnectionContext);
   let keymanager = new keyManager(keys)
 
-  function bin2String(array) {
-    var result = "";
-    for (var i = 0; i < array.length; i++) {
-      result += String.fromCharCode(parseInt(array[i], 2));
-    }
-    return result;
-  }
   async function getAsByteArray(file) {
     return new Uint8Array(await readFile(file))
   }
@@ -32,7 +25,9 @@ function FileUploadPage({ keys, room, handleSubmit, messageId }) {
   }
 
   /**
-   * 
+   * Takes care of submitting the file that has been chosen
+   * @param {*} event 
+   * @returns 
    */
   async function handleSubmission(event) {
     event.preventDefault()
@@ -50,7 +45,7 @@ function FileUploadPage({ keys, room, handleSubmit, messageId }) {
     console.log(BAFile + "BA file")
 
     let encrypted = await keymanager.encryptFileWithAESKey(BAFile)
-    const blob1 = new Blob([encrypted.body])
+    // const blob1 = new Blob([encrypted.body])
     console.log("encrypted... " + JSON.stringify(encrypted))
 
 
@@ -68,6 +63,7 @@ function FileUploadPage({ keys, room, handleSubmit, messageId }) {
     console.log(jsonstring)
     var blob2 = new Blob([jsonstring], { type: "application/pdf" });
 
+    /*
     let bodyData = {
       // "file":encrypted.body, 
       "file": "geh",
@@ -81,9 +77,10 @@ function FileUploadPage({ keys, room, handleSubmit, messageId }) {
     }
     await handleSubmit(true,
       bodyData
-    );
-    console.log(bodyData.file)
-
+      );
+      console.log(bodyData.file)
+      */
+      
 
     let result = await fetch(url, {
       method: "POST",

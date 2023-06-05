@@ -8,15 +8,6 @@ class keyManager {
   AESKey = "AESkey??"
   AESKeyExported = ""
 
-  // constructor(publicKey, privateKey, AESKey, publicKeyAsString, AESKeyExported){
-  //   this.privateKey = privateKey;
-  //   this.AESKey = AESKey;
-  //   this.publicKey = publicKey;
-  //   this.publicKeyAsString = publicKeyAsString;
-  //   this.AESKeyExported = AESKeyExported
-
-  // }
-   
   constructor(keys){
     this.privateKey = keys.privateKey;
     this.AESKey = keys.AESKey;
@@ -28,12 +19,6 @@ class keyManager {
   }
 
 
-
-
-  publishPublicKeyToRoom() {
-    //STRINGIFYJSON
-    //tell server about my public key
-  }
 
 
 /**
@@ -78,7 +63,6 @@ class keyManager {
     });
     encryptedDataPlainIV.iv=iv
     encryptedDataPlainIV.body=encrypteText
-    // return encryptedKey;
     return encryptedDataPlainIV
 }
 
@@ -122,7 +106,6 @@ class keyManager {
       .generateKey(
         {
           name: "RSA-OAEP",
-          // Consider using a 4096-bit key for systems that require long-term security
           modulusLength: 2048,
           publicExponent: new Uint8Array([1, 0, 1]),
           hash: "SHA-256",
@@ -153,7 +136,6 @@ class keyManager {
   str2ab(str) {
     const buf = new ArrayBuffer(str.length);
     const bufView = new Uint8Array(buf);
-    // for (let i = 0, strLen = str.length; i < strLen; i++) {
     for (let i = 0, strLen = str.length; i < strLen; i++) {
       bufView[i] = str.charCodeAt(i);
     }
@@ -191,7 +173,6 @@ class keyManager {
     const binaryDerString = window.atob(pemContents);
     // convert from a binary string to an ArrayBuffer
     const binaryDer = this.str2ab(binaryDerString);
-    // return window.crypto.subtle.importKey(
     return await window.crypto.subtle.importKey(
       "spki",
       binaryDer,
@@ -205,10 +186,6 @@ class keyManager {
   }
 
 async importAesKey(decryptedAESKey){
-  // const binaryDerString = window.atob(aesKeyAsString);
-    // convert from a binary string to an ArrayBuffer
-    // const binaryDer = this.str2ab(binaryDerString);
-    // return window.crypto.subtle.importKey(
     
     return await window.crypto.subtle.importKey(
       "raw",
@@ -223,18 +200,15 @@ async importAesKey(decryptedAESKey){
 }
 
 async decrpytAESKey(encryptedAESKeyString){
-  // const binaryDerString = window.atob(encryptedAESKeyString);
   
   let encryptedAESKeyAB = this.str2ab(encryptedAESKeyString);
   let decryptedAESKey = await window.crypto.subtle.decrypt(
     {
       name: "RSA-OAEP",
-      // iv: window.crypto.getRandomValues(new Uint8Array(16)),
     },
     this.privateKey,
     encryptedAESKeyAB
     )
-    // let encryptedAESKey = importAesKey(decryptedAESKey)
     this.AESKey = await this.importAesKey(decryptedAESKey);
 }
 
@@ -309,10 +283,6 @@ async decrpytAESKey(encryptedAESKeyString){
           this.AESKey,
           this.str2ab(messageAndIVObject.body)
           )
-
-        //   let dec = new TextDecoder();
-        // console.log("decryptedMessage ab: " + decryptedMessage)
-        // console.log("decryptedMessage:: " + this.ab2str(decryptedMessage))
         return this.ab2str(decryptedMessage)
           
         }
@@ -325,10 +295,6 @@ async decrpytAESKey(encryptedAESKeyString){
          * @returns Encrypted text as string
         */
        async encryptFileWithAESKey(plainText) {
-  
-     
-        // let plainTextAB = this.str2ab(JSON.stringify(plainText))
-        
         let  iv =this.createIV();
         let encrypteText = await window.crypto.subtle.encrypt(
           {
@@ -341,13 +307,6 @@ async decrpytAESKey(encryptedAESKeyString){
           .catch(function (err) {
             console.error(err);
           });
-          // let encryptedDataWithPlainIV={iv:this.bin2String(iv),body:this._arrayBufferToBase64(encrypteText)}
-          // let encryptedDataWithPlainIV={iv:iv,body:encrypteText}
-          // let simpleByteArray=[]
-          // iv.forEach(byte => {
-          //   simpleByteArray.push(byte) 
-          // });
-          // let encryptedDataWithPlainIV={iv:String(simpleByteArray),body:this._arrayBufferToBase64(encrypteText)}
           let encryptedDataWithPlainIV={iv:this._arrayBufferToBase64(iv),body:this._arrayBufferToBase64(encrypteText)}
           return encryptedDataWithPlainIV
         }
@@ -366,7 +325,6 @@ async decrpytAESKey(encryptedAESKeyString){
       
       try {
         
-        // let decryptedMessage = "default";
         decryptedMessage = await window.crypto.subtle.decrypt(
           {
             name: "AES-CBC",
@@ -378,63 +336,57 @@ async decrpytAESKey(encryptedAESKeyString){
           
         }
         catch (e) {}
-          //   let dec = new TextDecoder();
-          // console.log("decryptedMessage ab: " + decryptedMessage)
-          // console.log("decryptedMessage:: " + this.ab2str(decryptedMessage))
           return (this.ab2str(decryptedMessage))
             
           }
-          
-
-
-           bin2String(array) {
-            var result = "";
-            for (var i = 0; i < array.length; i++) {
-              result += String.fromCharCode(parseInt(array[i], 2));
-            }
-            return result;
-          }
-          
-         string2Bin(str) {
-            var result = [];
-            for (var i = 0; i < str.length; i++) {
-              result.push(str.charCodeAt(i).toString(2));
-            }
-            return result;
-          }
-
-          _arrayBufferToBase64( buffer ) {
-            var binary = '';
-            var bytes = new Uint8Array( buffer );
-            var len = bytes.byteLength;
-            for (var i = 0; i < len; i++) {
-              binary += String.fromCharCode( bytes[ i ] );
-            }
-            return window.btoa( binary );
-          }
-
-        createIV() {
-          const array = new Uint8Array(16);
-          let iv=self.crypto.getRandomValues(array);
-          console.log(iv)
-         return iv
-        }
-
-
-
- base64ToArrayBuffer(base64) {
-    var binary_string =  window.atob(base64);
-    var len = binary_string.length;
-    var bytes = new Uint8Array( len );
-    for (var i = 0; i < len; i++)        {
-        bytes[i] = binary_string.charCodeAt(i);
+    bin2String(array) {
+    var result = "";
+    for (var i = 0; i < array.length; i++) {
+      result += String.fromCharCode(parseInt(array[i], 2));
     }
-    console.log("base64 to bugger length: " +bytes.buffer.byteLength )
-    return bytes.buffer;
-}
-
-
+    return result;
+  }
+          
+    string2Bin(str) {
+      var result = [];
+      for (var i = 0; i < str.length; i++) {
+        result.push(str.charCodeAt(i).toString(2));
       }
+      return result;
+    }
+
+    _arrayBufferToBase64( buffer ) {
+      var binary = '';
+      var bytes = new Uint8Array( buffer );
+      var len = bytes.byteLength;
+      for (var i = 0; i < len; i++) {
+        binary += String.fromCharCode( bytes[ i ] );
+      }
+      return window.btoa( binary );
+    }
+
+  createIV() {
+    const array = new Uint8Array(16);
+    let iv=self.crypto.getRandomValues(array);
+    console.log(iv)
+    return iv
+  }
+
+
+
+  base64ToArrayBuffer(base64) {
+      var binary_string =  window.atob(base64);
+      var len = binary_string.length;
+      var bytes = new Uint8Array( len );
+      for (var i = 0; i < len; i++)        {
+          bytes[i] = binary_string.charCodeAt(i);
+      }
+      console.log("base64 to bugger length: " +bytes.buffer.byteLength )
+      return bytes.buffer;
+  }
+
+
+}
         
-        export default keyManager;
+export default keyManager;
         

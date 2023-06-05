@@ -31,9 +31,16 @@ function ListOfChatMessages({listOfChatMessages}){
   let[loading,setLoading]=useState(false);
   let [listOfMessages,setListOfMessages] =useState([])
   let [messageID,setMessageID]=useState(1)
-  // let messageID = 1;
-
+  
   let keymanager = new keyManager(keys)
+  
+  // Setting up handler for receiving messages from the SignalR server
+  useEffect(() => {
+    if (connection){
+    connection.on("ReceiveMessage", rsvMsg)
+    //Runs only on the first render
+    }
+  }, []);
   
   async function handleDownload(id){
     const url = "http://77.33.131.226:3000/api/databaseapi/"+id
@@ -55,9 +62,7 @@ function ListOfChatMessages({listOfChatMessages}){
     saveAs(blob, result.fileName)
     
   }
-
-// necessary to have a unique key for each message
-
+  
 function leaveRoom(){
   if(connection){
     connection.stop();
@@ -68,19 +73,18 @@ function leaveRoom(){
 
 
 async function handleSubmit(isFile=false,fileData=""){
-  // incrementClientMsgId();
-  // Setting of the structure of the message object
+
+  // Getting latest message ID from server
   let msgID = await connection.invoke("GetMessageId")
-  // messageID = msgID
   setMessageID(msgID)
-  console.log("msgID: " + msgID)
-  let textCont = text
-  // let textCont = "holder"
+
   let today = new Date();
   var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-  let messageToSend;
+  
+  let textCont = text
   let encryptedBody = await keymanager.encryptDataWithAESKey(textCont)
-  console.log(encryptedBody)
+  
+  let messageToSend;
   if(isFile){
     messageToSend= { 
       fileId      :fileData.id, 
@@ -102,8 +106,8 @@ async function handleSubmit(isFile=false,fileData=""){
     }
   }
   setText("")
-  // setMessageID(key + "a")
-    // Setting values of the message object
+   
+  // Setting values of the message object
     setListOfMessages(function (x) {
       const temporaryMsgArray = [...x];
       temporaryMsgArray.push(messageToSend)
@@ -115,41 +119,7 @@ async function handleSubmit(isFile=false,fileData=""){
   await connection.invoke("SendMessage", encryptedMessage)
   
 }
-// async function handleSendMessageAction(userMessage){
-//   // other code
-//   await connection.invoke("SendMessage", userMessage)
-// }
 
-useEffect(() => {
-  if (connection){
-  connection.on("ReceiveMessage", rsvMsg)
-  //Runs only on the first render
-  }
-}, []);
-
-
-  // connection.on("GetRoomId", function (messageId) {
-  //   try {
-  //     const msgID = messageId
-  //     messageID = msgID
-  //     // setMessageID(messageId)
-  //     // messageID = messageId
-  //     console.log("messageID: " + messageID)
-  //     connection.off("GetRoomId")
-  //   } catch (error) {
-  //     console.log(error)
-  //   }  
-  // }
-  // )
-
-  // connection.on("ReceiveMessage",
-  //     function (message) {
-  //       // ... other code
-  //       // display message
-  //       connection.off("ReceiveMessage")
-  // })
-
-      
 
   async function rsvMsg(user, encryptedMsg, messageId) {
     // messageID = messageId
@@ -177,25 +147,11 @@ useEffect(() => {
           temporaryMsgArray.push(receivedMessage)
           return temporaryMsgArray  
         } )
-
-        // await connection.off("ReceiveMessage")
-    // }
-
-
-
-  // Invoked from servers sides whenever someone else sends a message
-  
-  
-
-     
-      // )
-      
-      
     }
 
 
 
-
+// When encryption is being toggled
 const handleChange = () => {
   console.log(changeText)
   return setChangeText(!changeText);

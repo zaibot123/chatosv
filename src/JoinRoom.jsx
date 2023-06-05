@@ -36,6 +36,9 @@ function JoinRoom(){
   // To send a notification for SignalR backend to create a room
   //  and add the participant 
   async function makeAndSendCreateRoomRequest() {
+    if (nameState==="") {
+      nameState = "Anon"
+    }
     setName(nameState)
    await keymanager.GenerateAESKey();
     
@@ -59,7 +62,7 @@ function JoinRoom(){
   // To send a notification for SignalR backend to join participant to a room
   async function join(user,id){
     await keymanager.generatePublicKey();
-    setNameState(user)
+    // setNameState(user)
     if (nameState==="") {
       nameState = "Anon"
     }
