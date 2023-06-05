@@ -16,8 +16,8 @@ function ChatComponent({ listOfChatMessages, handleDownload, changeText }) {
 
   return (
     <div className="flex  flex: 1 1 0%  h-screen" style={{ maxHeight: "50vh"}}>
-      <div style={{ padding: "1rem" }} className="rounded-[7px] border border-blue-gray-200 w-1/5 overflow-y-auto flex-col flex-grow bg-purple-50">
-        <div ref={chatContainerRef} className="chat-container overflow-y-auto">
+      <div ref={chatContainerRef} style={{ padding: "1rem" }} className="rounded-[7px] border border-blue-gray-200 w-1/5 overflow-y-auto flex-col flex-grow bg-purple-50">
+        <div className="chat-container overflow-y-auto">
           {listOfChatMessages.map((message, index) => (
             <ChatMessage
               key={message.messageId}
