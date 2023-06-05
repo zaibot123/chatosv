@@ -9,7 +9,7 @@ export default function Toggle(changeText) {
 
   return (
     <div>
-      <button onClick={() => handleChange()}>Toggle text representation</button>
+      <button onClick={() => handleChange()}>Toggle text representation: </button>
       {changeText ? "Plaintext" : "Encrypted"}
     </div>
   );

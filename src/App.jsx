@@ -16,7 +16,7 @@ import {ConnectionContext} from './ConnectionContext'
 
 
 function App() {
-  const[name,setName]=useState("Anonymous")
+  const[name,setName]=useState("Anon")
   const[connection,setConnection]=useState();
   return(
 

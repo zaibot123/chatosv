@@ -36,17 +36,15 @@ function JoinRoom(){
   // To send a notification for SignalR backend to create a room
   //  and add the participant 
   async function makeAndSendCreateRoomRequest() {
-    <s></s>
+    setName(nameState)
    await keymanager.GenerateAESKey();
     
-    
-    
-    var connectionToCreate = new HubConnectionBuilder().withUrl("http://localhost:100/chatHub").build();
+    var connectionToCreate = new HubConnectionBuilder().withUrl("http://localhost:100/chatHub").withAutomaticReconnect().build();
     await connectionToCreate.start()
     .then(function ()
     {
       setConnection(connectionToCreate);
-      connectionToCreate.invoke("CreateRoom", name)
+      connectionToCreate.invoke("CreateRoom", nameState)
     }).catch(function (err) {
       console.log(err)
     })
@@ -59,97 +57,67 @@ function JoinRoom(){
   
   
   // To send a notification for SignalR backend to join participant to a room
-  async function join(name,id){
+  async function join(user,id){
     await keymanager.generatePublicKey();
-    var connectionToJoin = new HubConnectionBuilder().withUrl("http://localhost:100/chatHub").build();
+    setNameState(user)
+    if (nameState==="") {
+      nameState = "Anon"
+    }
+    setName(nameState)
+    setRoomID(id)
+    var connectionToJoin = new HubConnectionBuilder().withUrl("http://localhost:100/chatHub").withAutomaticReconnect().build();
     await connectionToJoin.start()
+    
     .then(async function() {
       setConnection(connectionToJoin);
-      await connectionToJoin.invoke("JoinRoom", name, id, keymanager.publicKeyAsString);
-      // navigate("/chat/"+id, {state:{keys:keymanager}})
+      await connectionToJoin.invoke("JoinRoom", nameState, id, keymanager.publicKeyAsString);
     }
     )
-    
-
-    /*
-    
-    .then(function ()
-    
-    {
-      setConnection(connectionToJoin);
-      
-      try {
-      // setConnection(connectionToJoin);
-      connectionToJoin.invoke("JoinRoom", name, id, keymanager.publicKey);
-      navigate("/chat/"+id, {state:{keys:keymanager}})
-    } catch (error) {
-      console.log(error)
-      navigate("/404/")    
-    }
   }
-  )
-  */
-
-}
-
-
-// All the methods called by the SignalR backend when 
-// communicating via sockets. 
-if (connection){
-
-    // Receive the generated room id
-    connection.on("ReceiveGroupName",
-    function (roomID) {
+  
+  
+  // All the methods called by the SignalR backend when 
+  // communicating via sockets. 
+  if (connection){
+    connection.onreconnected(connectionId => {
+    connection.invoke("JoinRoom", name, roomID, keymanager.publicKeyAsString);
+  });
+  
+  // Receive the generated room id
+  connection.on("ReceiveGroupName",
+  function (roomID) {
     setRoomID(roomID)
-    setName(name)
     navigate("/chat/"+roomID, {state:{keys:keymanager}})
   }
   )
-
+  
   // 
-   connection.on("SendKey",
-   async (publicKey) => {
+  connection.on("SendKey",
+  async (publicKey) => {
     let encryptedAES = await keymanager.importRsaKey(publicKey);
     let encryptedAESkey=  await keymanager.encryptAESKeyWithPublicKey(encryptedAES);
     return encryptedAESkey;
-
-  //  let promise = new Promise((resolve, reject) => {
-  //       setTimeout(() => {
-  //           resolve(encryptedAESkey);
-  //       }, 100);
-  //   });
-  //   return promise; 
   }
-   )
-   
-   connection.on("ReceiveKey",
-   async function (encryptedAESKey){
-    // set the encrypted symmetric key
+  )
+  
+  connection.on("ReceiveKey",
+  async function (encryptedAESKey){
     await keymanager.decrpytAESKey(encryptedAESKey)
     navigate("/chat/"+id, {state:{keys:keymanager}})
-
-
-    // console.log("private key: " + keymanager.privateKey)
-    // keymanager.AESKey = encryptedAESKey;
-    // keymanager.AESKey(encryptedAESKey);
-   }
-   )
-
-
-
-
-
-  } 
+  }
+  )
+} 
 
 
 
 return (
     <>
-    <div class="flex mb-0">
-  <div class="w-1/4 bg-blue-500 h-12">
+    <div class=" gap-y-10 gap-x-10 ">
+    <div class="flex mb-0 ">
+  <div class="w-2/5 bg-blue-500 h-12">
   <h1 class="flex items-center text-5xl font-extrabold dark:text-white">funchat </h1>
   </div>
-  <div class="w-3/4 bg-blue-700 h-12">
+  <div class="w-3/5 bg-blue-700 h-12">
     
     
   </div>
@@ -157,7 +125,7 @@ return (
 
 
 
-<form className="bg-blue-300 shadow-md rounded px-100 pt-3 pb-8 mb-0 display:block z-0z-">
+<form className="  bg-blue-300 shadow-md rounded px-100 pt-3 pb-8 mb-0 display:block z-0z- ">
   
       <label>Name:
       <input
@@ -167,7 +135,7 @@ return (
         aria-label="name" 
         value={nameState}
         onChange={e => setNameState(e.target.value)}
-      />
+        />
       </label>
 
 </form>
@@ -175,7 +143,7 @@ return (
   
 
 
-<form className="bg-blue-300 shadow-md rounded px-80 pt-6 pb-8 mb-4 display:block z-10z-40">
+<form className="bg-blue-300 shadow-md rounded px-100 pt-3 pb-8 mb-0  display:block z-0z-  ">
   
       <label>Room Code:
       <input
@@ -185,7 +153,7 @@ return (
         aria-label="id" 
         value={id}
         onChange={e => setID(e.target.value)}
-      />
+        />
       </label>
 
 <button type="button"  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"onClick={()=> join(nameState,id)}>
@@ -193,15 +161,11 @@ return (
 </button>
 <br></br>
 
-<button type="button"  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"onClick={()=> preJoin()}>
- PRE Join room!
-</button>
-<br></br>
-
 <button type="button" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"onClick={()=>makeAndSendCreateRoomRequest()}>
  Dont have a room? Create one here!
 </button>
 </form>
+        </div>
 
 
     </>
